@@ -726,6 +726,7 @@
 
         document.getElementById('random-game-btn').addEventListener('click', () => {
             codeModal.classList.add('hidden');
+            localStorage.removeItem('loxie_saved_game');
             window.history.replaceState({}, document.title, window.location.pathname);
             fetchNewGame();
         });
@@ -749,6 +750,7 @@
                 const decoded = atob(val).toLowerCase().trim();
                 if (decoded.length >= 5 && decoded.length <= 8 && /^[a-z]+$/.test(decoded)) {
                     codeModal.classList.add('hidden');
+                    localStorage.removeItem('loxie_saved_game');
                     window.history.replaceState({}, document.title, `${window.location.pathname}?seed=${btoa(decoded)}`);
                     fetchNewGame();
                 } else {
@@ -760,6 +762,7 @@
         });
 
         document.getElementById('play-again-btn').addEventListener('click', () => {
+            localStorage.removeItem('loxie_saved_game');
             window.history.replaceState({}, document.title, window.location.pathname);
             fetchNewGame();
         });
@@ -795,8 +798,28 @@
             document.getElementById('stat-streak').textContent = stats.streak;
         }
 
+        function saveGameState() {
+            if (isGameOver) {
+                localStorage.removeItem('loxie_saved_game');
+                return;
+            }
+            const gameState = {
+                secretWord,
+                wordLength,
+                maxGuesses,
+                guesses,
+                isGameOver
+            };
+            localStorage.setItem('loxie_saved_game', JSON.stringify(gameState));
+        }
+
         async function fetchNewGame() {
             initAudio();
+
+            isGameOver = false;
+            currentGuess = "";
+            feedbackEl.textContent = "";
+
             endScreen.classList.add('hidden');
             gameScreen.classList.add('hidden');
             loaderScreen.classList.remove('hidden');
@@ -811,6 +834,7 @@
                     if (decoded.length >= 5 && decoded.length <= 8 && /^[a-z]+$/.test(decoded)) {
                         secretWord = decoded;
                         wordLength = secretWord.length;
+                        localStorage.removeItem('loxie_saved_game');
                     } else {
                         throw new Error("Invalid code format");
                     }
@@ -819,16 +843,30 @@
                     await fetchRandomAPIWord();
                 }
             } else {
-                loadingText.textContent = "Loading game...";
-                await fetchRandomAPIWord();
+                const savedGameJson = localStorage.getItem('loxie_saved_game');
+                if (savedGameJson) {
+                    try {
+                        const savedGame = JSON.parse(savedGameJson);
+                        secretWord = savedGame.secretWord;
+                        wordLength = savedGame.wordLength;
+                        maxGuesses = savedGame.maxGuesses;
+                        guesses = savedGame.guesses || [];
+                        isGameOver = savedGame.isGameOver || false;
+                    } catch (e) {
+                        localStorage.removeItem('loxie_saved_game');
+                        await fetchRandomAPIWord();
+                    }
+                } else {
+                    loadingText.textContent = "Loading game...";
+                    await fetchRandomAPIWord();
+                }
             }
 
             maxGuesses = wordLength >= 7 ? 7 : 6;
 
-            guesses = [];
-            currentGuess = "";
-            isGameOver = false;
-            feedbackEl.textContent = "";
+            if (!seedParam && localStorage.getItem('loxie_saved_game') === null) {
+                guesses = [];
+            }
 
             statusInfo.textContent = `Guess the ${wordLength}-letter word!`;
 
@@ -837,6 +875,8 @@
 
             renderGrid();
             resetKeyboardColors();
+            updateKeyboardColors();
+            saveGameState();
         }
 
         async function fetchRandomAPIWord() {
@@ -981,9 +1021,11 @@
         document.addEventListener('keydown', (e) => {
             if (isGameOver || gameScreen.classList.contains('hidden')) return;
             const key = e.key.toLowerCase();
+
             if (key === 'backspace') handleKey('BACK');
             else if (key === 'enter') handleKey('ENTER');
-            else if (key >= 'a' && key <= 'z') handleKey(key);
+            // Added key.length === 1 so function keys like F5 are ignored completely
+            else if (key.length === 1 && key >= 'a' && key <= 'z') handleKey(key);
         });
 
         function handleKey(key) {
@@ -1016,6 +1058,7 @@
             currentGuess = "";
             updateKeyboardColors();
             renderGrid();
+            saveGameState();
 
             if (guesses[guesses.length - 1] === secretWord) {
                 isGameOver = true;
@@ -1023,6 +1066,7 @@
                 stats.wins++;
                 stats.streak++;
                 localStorage.setItem('loxie_stats', JSON.stringify(stats));
+                localStorage.removeItem('loxie_saved_game');
 
                 playSound('win');
                 triggerConfetti(70);
@@ -1038,6 +1082,7 @@
                 stats.played++;
                 stats.streak = 0;
                 localStorage.setItem('loxie_stats', JSON.stringify(stats));
+                localStorage.removeItem('loxie_saved_game');
 
                 playSound('wrong');
 
