@@ -429,6 +429,19 @@
             opacity: 0.8;
         }
 
+        .stat-tab {
+            margin-top: 0;
+            padding: 6px 8px;
+            font-size: 0.75rem;
+            flex: 1;
+        }
+
+        .stat-tab.active-tab {
+            background-color: var(--primary-color);
+            color: #0f172a;
+            border-color: var(--primary-color);
+        }
+
         #confetti-canvas {
             position: fixed;
             top: 0;
@@ -646,22 +659,43 @@
     <div id="stats-modal" class="modal hidden">
         <div class="modal-content">
             <h2>Statistics</h2>
-            <div style="display: flex; justify-content: space-around; margin: 1.5rem 0; text-align: center;">
+            <div style="display: flex; gap: 4px; margin-bottom: 0.75rem;">
+                <button class="btn-secondary stat-tab active-tab" data-len="5">5 Letters</button>
+                <button class="btn-secondary stat-tab" data-len="6">6 Letters</button>
+                <button class="btn-secondary stat-tab" data-len="7">7 Letters</button>
+                <button class="btn-secondary stat-tab" data-len="8">8 Letters</button>
+            </div>
+            <div
+                style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 0.75rem 0; text-align: center;">
                 <div>
-                    <div id="stat-played" style="font-size: 1.8rem; font-weight: bold; color: var(--primary-color);">0
+                    <div id="stat-played" style="font-size: 1.3rem; font-weight: bold; color: var(--primary-color);">0
                     </div>
-                    <div style="font-size: 0.75rem; opacity: 0.7;">Played</div>
+                    <div style="font-size: 0.65rem; opacity: 0.7;">Played</div>
                 </div>
                 <div>
-                    <div id="stat-wins" style="font-size: 1.8rem; font-weight: bold; color: var(--correct);">0</div>
-                    <div style="font-size: 0.75rem; opacity: 0.7;">Wins</div>
+                    <div id="stat-winpct" style="font-size: 1.3rem; font-weight: bold; color: var(--correct);">0%</div>
+                    <div style="font-size: 0.65rem; opacity: 0.7;">Win %</div>
                 </div>
                 <div>
-                    <div id="stat-streak" style="font-size: 1.8rem; font-weight: bold; color: var(--present);">0</div>
-                    <div style="font-size: 0.75rem; opacity: 0.7;">Streak</div>
+                    <div id="stat-streak" style="font-size: 1.3rem; font-weight: bold; color: var(--present);">0</div>
+                    <div style="font-size: 0.65rem; opacity: 0.7;">Streak</div>
+                </div>
+                <div>
+                    <div id="stat-maxstreak" style="font-size: 1.3rem; font-weight: bold; color: var(--text-color);">0
+                    </div>
+                    <div style="font-size: 0.65rem; opacity: 0.7;">Max Streak</div>
                 </div>
             </div>
-            <button id="close-stats-btn" class="btn-main">Close</button>
+
+            <div
+                style="font-size: 0.75rem; font-weight: bold; text-align: left; margin-top: 1rem; margin-bottom: 6px; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px;">
+                Guess Distribution</div>
+            <div id="guess-distribution-container"
+                style="display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: 0.8rem; margin-bottom: 1rem;">
+                <!-- Populated via JS -->
+            </div>
+
+            <button id="close-stats-btn" class="btn-main" style="margin-top: 0.5rem;">Close</button>
         </div>
     </div>
 
@@ -889,9 +923,36 @@
         let currentGuess = "";
         let isGameOver = false;
 
-        let stats = {played: 0, wins: 0, streak: 0};
+        // Advanced length-specific stats structure with distribution & max streak
+        let stats = {
+            5: {played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}},
+            6: {played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}},
+            7: {played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}},
+            8: {played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}}
+        };
+
         const savedStats = localStorage.getItem('loxie_stats');
-        if (savedStats) stats = JSON.parse(savedStats);
+        if (savedStats) {
+            try {
+                const parsed = JSON.parse(savedStats);
+                if (typeof parsed.played === 'number') {
+                    stats[5].played = parsed.played;
+                    stats[5].wins = parsed.wins;
+                    stats[5].streak = parsed.streak;
+                    stats[5].maxStreak = parsed.streak;
+                } else if (parsed[5]) {
+                    [5, 6, 7, 8].forEach(l => {
+                        if (parsed[l]) {
+                            stats[l].played = parsed[l].played || 0;
+                            stats[l].wins = parsed[l].wins || 0;
+                            stats[l].streak = parsed[l].streak || 0;
+                            stats[l].maxStreak = parsed[l].maxStreak || parsed[l].streak || 0;
+                            stats[l].guesses = parsed[l].guesses || (l >= 7 ? {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0} : {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0});
+                        }
+                    });
+                }
+            } catch (e) { }
+        }
 
         const loaderScreen = document.getElementById('loader-screen');
         const gameScreen = document.getElementById('game-screen');
@@ -914,11 +975,69 @@
         document.getElementById('help-btn').addEventListener('click', () => helpModal.classList.remove('hidden'));
         document.getElementById('close-help-btn').addEventListener('click', () => helpModal.classList.add('hidden'));
 
+        let selectedStatLength = 5;
         document.getElementById('stats-btn').addEventListener('click', () => {
-            updateStatsModal();
+            selectedStatLength = wordLength;
+            updateStatsModal(selectedStatLength);
             statsModal.classList.remove('hidden');
         });
         document.getElementById('close-stats-btn').addEventListener('click', () => statsModal.classList.add('hidden'));
+
+        const statTabs = statsModal.querySelectorAll('.stat-tab');
+        statTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                statTabs.forEach(t => t.classList.remove('active-tab'));
+                e.target.classList.add('active-tab');
+                selectedStatLength = parseInt(e.target.getAttribute('data-len'));
+                updateStatsModal(selectedStatLength);
+            });
+        });
+
+        function updateStatsModal(len) {
+            statTabs.forEach(t => {
+                if (parseInt(t.getAttribute('data-len')) === len) {
+                    t.classList.add('active-tab');
+                } else {
+                    t.classList.remove('active-tab');
+                }
+            });
+
+            const curStats = stats[len] || {played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: {}};
+            const winPct = curStats.played > 0 ? Math.round((curStats.wins / curStats.played) * 100) : 0;
+
+            document.getElementById('stat-played').textContent = curStats.played;
+            document.getElementById('stat-winpct').textContent = `${winPct}%`;
+            document.getElementById('stat-streak').textContent = curStats.streak;
+            document.getElementById('stat-maxstreak').textContent = curStats.maxStreak;
+
+            // Render Guess Distribution Chart
+            const distContainer = document.getElementById('guess-distribution-container');
+            distContainer.innerHTML = '';
+            const maxGuessesForLen = len >= 7 ? 7 : 6;
+            const guessCounts = Object.values(curStats.guesses || {});
+            const maxCount = guessCounts.length > 0 ? Math.max(...guessCounts, 1) : 1;
+
+            for (let i = 1; i <= maxGuessesForLen; i++) {
+                const count = curStats.guesses[i] || 0;
+                const widthPct = Math.max(Math.round((count / maxCount) * 100), 8);
+
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '6px';
+                row.style.fontSize = '0.75rem';
+
+                row.innerHTML = `
+                    <div style="width: 12px; font-weight: bold; text-align: center;">${i}</div>
+                    <div style="flex: 1; background: var(--border-color); border-radius: 3px; overflow: hidden; height: 18px; display: flex;">
+                        <div style="background: var(--correct); width: ${widthPct}%; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: var(--absent-text); font-weight: bold; transition: width 0.3s;">
+                            ${count}
+                        </div>
+                    </div>
+                `;
+                distContainer.appendChild(row);
+            }
+        }
 
         document.getElementById('code-menu-btn').addEventListener('click', () => {
             codeInput.value = "";
@@ -994,12 +1113,6 @@
                 setTimeout(() => {shareCodeBtn.textContent = "📊 Share Score Grid";}, 2000);
             });
         });
-
-        function updateStatsModal() {
-            document.getElementById('stat-played').textContent = stats.played;
-            document.getElementById('stat-wins').textContent = stats.wins;
-            document.getElementById('stat-streak').textContent = stats.streak;
-        }
 
         function saveGameState() {
             if (isGameOver) {
@@ -1266,9 +1379,13 @@
 
             if (guesses[guesses.length - 1] === secretWord) {
                 isGameOver = true;
-                stats.played++;
-                stats.wins++;
-                stats.streak++;
+                const cur = stats[wordLength];
+                cur.played++;
+                cur.wins++;
+                cur.streak++;
+                if (cur.streak > cur.maxStreak) cur.maxStreak = cur.streak;
+                cur.guesses[guesses.length] = (cur.guesses[guesses.length] || 0) + 1;
+
                 localStorage.setItem('loxie_stats', JSON.stringify(stats));
                 localStorage.removeItem('loxie_saved_game');
 
@@ -1287,8 +1404,10 @@
                 }, 600);
             } else if (guesses.length >= maxGuesses) {
                 isGameOver = true;
-                stats.played++;
-                stats.streak = 0;
+                const cur = stats[wordLength];
+                cur.played++;
+                cur.streak = 0;
+
                 localStorage.setItem('loxie_stats', JSON.stringify(stats));
                 localStorage.removeItem('loxie_saved_game');
 
