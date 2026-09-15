@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Loxie</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --border-color: #334155;
+            --key-bg: #1e293b;
+            --key-text: #f8fafc;
+            --correct: #06b6d4;
+            --present: #f59e0b;
+            --absent: #475569;
+            --absent-text: #ffffff;
+            --primary-color: #06b6d4;
+            --modal-bg: #1e293b;
+            --modal-text: #f8fafc;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
+            --border-color: #cbd5e1;
+            --key-bg: #e2e8f0;
+            --key-text: #0f172a;
+            --correct: #0891b2;
+            --present: #d97706;
+            --absent: #94a3b8;
+            --absent-text: #ffffff;
+            --primary-color: #0891b2;
+            --modal-bg: #ffffff;
+            --modal-text: #0f172a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            background-color: var(--bg-color);
+            padding: 1rem;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            border-bottom: 2px dashed var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            fill: var(--primary-color);
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            margin: 0;
+            letter-spacing: 3px;
+            color: var(--primary-color);
+            font-weight: 900;
+        }
+
+        .nav-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-color);
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--text-color);
+        }
+
+        .nav-btn:hover {
+            opacity: 0.8;
+        }
+
+        .status-info {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .share-code-btn {
+            background-color: var(--primary-color);
+            color: #0f172a;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 900;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: filter 0.2s;
+            display: inline-block;
+            margin-top: 0.5rem;
+            width: 100%;
+            max-width: 260px;
+        }
+
+        .share-code-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .reveal-btn {
+            background-color: transparent;
+            border: 1px dashed var(--border-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.8rem;
+        }
+
+        .reveal-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* Loading Screen */
+        .loader-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 250px;
+            gap: 12px;
+            font-weight: bold;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Dynamic Grid Container */
+        .grid {
+            display: grid;
+            grid-gap: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .grid-row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .tile {
+            width: 44px;
+            height: 44px;
+            border: 2px solid var(--border-color);
+            font-size: 1.3rem;
+            font-weight: 800;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+            user-select: none;
+            border-radius: 6px;
+            color: var(--text-color);
+            transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        .tile.filled {
+            border-color: var(--primary-color);
+            transform: scale(1.03);
+        }
+
+        .tile.correct {
+            background-color: var(--correct);
+            color: #0f172a;
+            border-color: var(--correct);
+            font-weight: 900;
+        }
+
+        .tile.present {
+            background-color: var(--present);
+            color: #0f172a;
+            border-color: var(--present);
+            font-weight: 900;
+        }
+
+        .tile.absent {
+            background-color: var(--absent);
+            color: var(--absent-text);
+            border-color: var(--absent);
+        }
+
+        /* Onscreen Keyboard */
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            max-width: 460px;
+            user-select: none;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .key {
+            background-color: var(--key-bg);
+            color: var(--key-text);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 12px 0;
+            flex: 1;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+            box-sizing: border-box;
+            transition: filter 0.2s, background-color 0.3s, color 0.3s;
+        }
+
+        .key:active {
+            filter: brightness(1.2);
+        }
+
+        .key.wide {
+            flex: 1.5;
+            font-size: 0.75rem;
+        }
+
+        .key.correct {
+            background-color: var(--correct) !important;
+            color: #0f172a !important;
+            font-weight: bold;
+        }
+
+        .key.present {
+            background-color: var(--present) !important;
+            color: #0f172a !important;
+            font-weight: bold;
+        }
+
+        .key.absent {
+            background-color: var(--absent) !important;
+            color: var(--absent-text);
+        }
+
+        .feedback {
+            font-size: 1rem;
+            font-weight: bold;
+            min-height: 24px;
+            margin-bottom: 8px;
+            color: #f43f5e;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Modal Overlay */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: var(--modal-bg);
+            color: var(--modal-text);
+            padding: 1.5rem;
+            border-radius: 12px;
+            max-width: 340px;
+            width: 90%;
+            text-align: left;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .btn-main {
+            background-color: var(--primary-color);
+            color: #0f172a;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 900;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .btn-secondary {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <svg class="logo-icon" viewBox="0 0 24 24">
+                    <path
+                        d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z" />
+                </svg>
+                <h1>LOXIE</h1>
+            </div>
+            <div class="nav-group">
+                <button id="theme-btn" class="nav-btn" title="Toggle Theme">☀️</button>
+                <button id="code-menu-btn" class="nav-btn" title="New Game / Enter Code">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
+                    </svg>
+                </button>
+                <button id="help-btn" class="nav-btn" title="Help">❓</button>
+                <button id="stats-btn" class="nav-btn" title="Stats">📊</button>
+            </div>
+        </header>
+
+        <!-- Loader Screen -->
+        <div id="loader-screen" class="loader-screen">
+            <div class="spinner"></div>
+            <div id="loading-text">Loading game...</div>
+        </div>
+
+        <!-- Main Game Screen -->
+        <div id="game-screen" class="hidden"
+            style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="status-info" id="status-info">Guess the word!</div>
+
+            <div id="grid" class="grid"></div>
+            <div id="feedback" class="feedback"></div>
+
+            <!-- Virtual Keyboard -->
+            <div class="keyboard" id="keyboard">
+                <div class="keyboard-row">
+                    <button class="key" data-key="q">q</button>
+                    <button class="key" data-key="w">w</button>
+                    <button class="key" data-key="e">e</button>
+                    <button class="key" data-key="r">r</button>
+                    <button class="key" data-key="t">t</button>
+                    <button class="key" data-key="y">y</button>
+                    <button class="key" data-key="u">u</button>
+                    <button class="key" data-key="i">i</button>
+                    <button class="key" data-key="o">o</button>
+                    <button class="key" data-key="p">p</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key" data-key="a">a</button>
+                    <button class="key" data-key="s">s</button>
+                    <button class="key" data-key="d">d</button>
+                    <button class="key" data-key="f">f</button>
+                    <button class="key" data-key="g">g</button>
+                    <button class="key" data-key="h">h</button>
+                    <button class="key" data-key="j">j</button>
+                    <button class="key" data-key="k">k</button>
+                    <button class="key" data-key="l">l</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key wide" data-key="ENTER">enter</button>
+                    <button class="key" data-key="z">z</button>
+                    <button class="key" data-key="x">x</button>
+                    <button class="key" data-key="c">c</button>
+                    <button class="key" data-key="v">v</button>
+                    <button class="key" data-key="b">b</button>
+                    <button class="key" data-key="n">n</button>
+                    <button class="key" data-key="m">m</button>
+                    <button class="key wide" data-key="BACK">⌫</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- End Game Screen -->
+        <div id="end-screen" class="hidden"
+            style="margin-top: 1rem; text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <h2 id="end-title" style="font-size: 1.6rem; margin-bottom: 0.4rem; color: var(--primary-color);"></h2>
+            <div id="end-content-area"
+                style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 0.8rem;">
+            </div>
+            <button id="share-code-btn" class="share-code-btn">📊 Share Score Grid</button>
+            <button id="play-again-btn" class="btn-secondary"
+                style="padding: 12px 24px; margin-top: 0.8rem; border-color: var(--primary-color); color: var(--primary-color);">New
+                Game 🔄</button>
+        </div>
+    </div>
+
+    <!-- Code Modal -->
+    <div id="code-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>New Game / Challenge Code</h2>
+            <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0.5rem;">
+                Start a fresh random game or paste a challenge code / link below:
+            </p>
+            <input type="text" id="code-input" class="code-input" placeholder="Paste challenge code or URL...">
+            <div id="code-error" style="font-size: 0.75rem; color: #f43f5e; min-height: 16px; margin-bottom: 4px;">
+            </div>
+            <button id="load-code-btn" class="btn-main">Load Challenge Code 🔑</button>
+            <button id="random-game-btn" class="btn-secondary">Generate Random Game 🎲</button>
+            <button id="close-code-btn" class="btn-secondary" style="margin-top: 0.25rem;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>How To Play</h2>
+            <p style="font-size: 0.9rem; line-height: 1.6;">
+                Guess the hidden word in 6 attempts (7 attempts for 7+ letter words). Length varies from 5 to 8
+                characters.<br><br>
+                💠 <strong>Cyan</strong> = Letter & spot verified.<br>
+                🔶 <strong>Amber</strong> = Letter exists, wrong spot.<br>
+                ⬛ <strong>Slate</strong> = Letter not in word.<br><br>
+                <strong>Challenging Friends:</strong> Once you finish a game, click "Share Score Grid" to copy your
+                emoji results and challenge link to share with friends!
+            </p>
+            <button id="close-help-btn" class="btn-main">Got It</button>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Statistics</h2>
+            <div style="display: flex; justify-content: space-around; margin: 1.5rem 0; text-align: center;">
+                <div>
+                    <div id="stat-played" style="font-size: 1.8rem; font-weight: bold; color: var(--primary-color);">0
+                    </div>
+                    <div style="font-size: 0.75rem; opacity: 0.7;">Played</div>
+                </div>
+                <div>
+                    <div id="stat-wins" style="font-size: 1.8rem; font-weight: bold; color: var(--correct);">0</div>
+                    <div style="font-size: 0.75rem; opacity: 0.7;">Wins</div>
+                </div>
+                <div>
+                    <div id="stat-streak" style="font-size: 1.8rem; font-weight: bold; color: var(--present);">0</div>
+                    <div style="font-size: 0.75rem; opacity: 0.7;">Streak</div>
+                </div>
+            </div>
+            <button id="close-stats-btn" class="btn-main">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const themeBtn = document.getElementById('theme-btn');
+        const savedTheme = localStorage.getItem('loxie_theme') || 'dark';
+        document.body.setAttribute('data-theme', savedTheme);
+        themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', newTheme);
+            themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('loxie_theme', newTheme);
+        });
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            if (type === 'tap') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, now);
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.02, now + 0.005);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.03);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.03);
+                setTimeout(() => {osc.disconnect(); gain.disconnect();}, 40);
+            }
+            else if (type === 'win') {
+                const notes = [659.25, 783.99, 880.00, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const noteTime = now + idx * 0.08;
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, noteTime);
+                    gain.gain.setValueAtTime(0.001, noteTime);
+                    gain.gain.linearRampToValueAtTime(0.08, noteTime + 0.01);
+                    gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.25);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(noteTime);
+                    osc.stop(noteTime + 0.25);
+                    setTimeout(() => {osc.disconnect(); gain.disconnect();}, 350);
+                });
+            }
+            else if (type === 'wrong') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.linearRampToValueAtTime(80, now + 0.2);
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.06, now + 0.02);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+                setTimeout(() => {osc.disconnect(); gain.disconnect();}, 250);
+            }
+        }
+
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confettiParticles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function triggerConfetti(count = 60) {
+            confettiParticles = [];
+            const colors = ['#06b6d4', '#f59e0b', '#3b82f6', '#ec4899', '#10b981'];
+            for (let i = 0; i < count; i++) {
+                confettiParticles.push({
+                    x: canvas.width / 2, y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 14, vy: (Math.random() - 0.7) * 16,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 1
+                });
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let active = false;
+            confettiParticles.forEach(p => {
+                if (p.life > 0) {
+                    active = true;
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.3; p.life -= 0.02;
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                }
+            });
+            ctx.globalAlpha = 1;
+            if (active) requestAnimationFrame(animateConfetti);
+        }
+
+        let secretWord = "";
+        let wordLength = 5;
+        let maxGuesses = 6;
+        let guesses = [];
+        let currentGuess = "";
+        let isGameOver = false;
+
+        let stats = {played: 0, wins: 0, streak: 0};
+        const savedStats = localStorage.getItem('loxie_stats');
+        if (savedStats) stats = JSON.parse(savedStats);
+
+        const loaderScreen = document.getElementById('loader-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const gridEl = document.getElementById('grid');
+        const feedbackEl = document.getElementById('feedback');
+        const statusInfo = document.getElementById('status-info');
+        const keyboardEl = document.getElementById('keyboard');
+        const loadingText = document.getElementById('loading-text');
+        const shareCodeBtn = document.getElementById('share-code-btn');
+        const endContentArea = document.getElementById('end-content-area');
+
+        // Modals
+        const helpModal = document.getElementById('help-modal');
+        const statsModal = document.getElementById('stats-modal');
+        const codeModal = document.getElementById('code-modal');
+        const codeInput = document.getElementById('code-input');
+        const codeError = document.getElementById('code-error');
+
+        document.getElementById('help-btn').addEventListener('click', () => helpModal.classList.remove('hidden'));
+        document.getElementById('close-help-btn').addEventListener('click', () => helpModal.classList.add('hidden'));
+
+        document.getElementById('stats-btn').addEventListener('click', () => {
+            updateStatsModal();
+            statsModal.classList.remove('hidden');
+        });
+        document.getElementById('close-stats-btn').addEventListener('click', () => statsModal.classList.add('hidden'));
+
+        document.getElementById('code-menu-btn').addEventListener('click', () => {
+            codeInput.value = "";
+            codeError.textContent = "";
+            codeModal.classList.remove('hidden');
+        });
+        document.getElementById('close-code-btn').addEventListener('click', () => codeModal.classList.add('hidden'));
+
+        document.getElementById('random-game-btn').addEventListener('click', () => {
+            codeModal.classList.add('hidden');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            fetchNewGame();
+        });
+
+        document.getElementById('load-code-btn').addEventListener('click', () => {
+            let val = codeInput.value.trim();
+            if (!val) {
+                codeError.textContent = "Please provide a code or URL.";
+                return;
+            }
+
+            try {
+                if (val.includes('http')) {
+                    const parsedUrl = new URL(val);
+                    const s = parsedUrl.searchParams.get('seed');
+                    if (s) val = s;
+                }
+            } catch (e) { }
+
+            try {
+                const decoded = atob(val).toLowerCase().trim();
+                if (decoded.length >= 5 && decoded.length <= 8 && /^[a-z]+$/.test(decoded)) {
+                    codeModal.classList.add('hidden');
+                    window.history.replaceState({}, document.title, `${window.location.pathname}?seed=${btoa(decoded)}`);
+                    fetchNewGame();
+                } else {
+                    codeError.textContent = "Invalid code format (must decode to 5-8 alphabetic characters).";
+                }
+            } catch (e) {
+                codeError.textContent = "Malformed challenge code string.";
+            }
+        });
+
+        document.getElementById('play-again-btn').addEventListener('click', () => {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            fetchNewGame();
+        });
+
+        shareCodeBtn.addEventListener('click', () => {
+            const currentCode = btoa(secretWord);
+            const shareUrl = `${window.location.origin}${window.location.pathname}?seed=${currentCode}`;
+
+            const scoreCount = isGameOver && guesses[guesses.length - 1] === secretWord ? guesses.length : 'X';
+            let gridText = `Loxie | ${scoreCount}/${maxGuesses}\n\n`;
+
+            guesses.forEach(guess => {
+                const statuses = getLetterStatuses(guess, secretWord);
+                statuses.forEach(status => {
+                    if (status === 'correct') gridText += '🟦';
+                    else if (status === 'present') gridText += '🟧';
+                    else gridText += '⬛';
+                });
+                gridText += '\n';
+            });
+
+            gridText += `\nCan you beat this? Try the challenge here:\n${shareUrl}`;
+
+            navigator.clipboard.writeText(gridText).then(() => {
+                shareCodeBtn.textContent = "✅ Score Grid Copied!";
+                setTimeout(() => {shareCodeBtn.textContent = "📊 Share Score Grid";}, 2000);
+            });
+        });
+
+        function updateStatsModal() {
+            document.getElementById('stat-played').textContent = stats.played;
+            document.getElementById('stat-wins').textContent = stats.wins;
+            document.getElementById('stat-streak').textContent = stats.streak;
+        }
+
+        async function fetchNewGame() {
+            initAudio();
+            endScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
+            loaderScreen.classList.remove('hidden');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const seedParam = urlParams.get('seed');
+
+            if (seedParam) {
+                loadingText.textContent = "Loading shared word...";
+                try {
+                    const decoded = atob(seedParam).toLowerCase().trim();
+                    if (decoded.length >= 5 && decoded.length <= 8 && /^[a-z]+$/.test(decoded)) {
+                        secretWord = decoded;
+                        wordLength = secretWord.length;
+                    } else {
+                        throw new Error("Invalid code format");
+                    }
+                } catch (e) {
+                    loadingText.textContent = "Invalid code, generating random...";
+                    await fetchRandomAPIWord();
+                }
+            } else {
+                loadingText.textContent = "Loading game...";
+                await fetchRandomAPIWord();
+            }
+
+            maxGuesses = wordLength >= 7 ? 7 : 6;
+
+            guesses = [];
+            currentGuess = "";
+            isGameOver = false;
+            feedbackEl.textContent = "";
+
+            statusInfo.textContent = `Guess the ${wordLength}-letter word!`;
+
+            loaderScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+
+            renderGrid();
+            resetKeyboardColors();
+        }
+
+        async function fetchRandomAPIWord() {
+            wordLength = Math.floor(Math.random() * 4) + 5;
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+                const response = await fetch(`https://random-word-api.herokuapp.com/word?length=${wordLength}`, {signal: controller.signal});
+                clearTimeout(timeoutId);
+
+                const data = await response.json();
+                if (data && data[0]) {
+                    secretWord = data[0].toLowerCase();
+                } else {
+                    throw new Error("API error");
+                }
+            } catch (err) {
+                const fallbacks = {
+                    5: [
+                        "apple", "bread", "chair", "plant", "smile", "beach", "cloud", "dance",
+                        "earth", "flame", "grape", "heart", "juice", "knock", "lemon", "magic",
+                        "night", "ocean", "paper", "queen", "river", "stone", "tiger", "union",
+                        "voice", "water", "youth", "zebra", "brave", "crisp"
+                    ],
+                    6: [
+                        "planet", "rocket", "stream", "window", "branch", "anchor", "bottle", "canyon",
+                        "design", "energy", "forest", "garden", "hammer", "island", "jungle", "kitten",
+                        "lantern", "market", "nectar", "orange", "puzzle", "quartz", "rabbit", "silver",
+                        "turtle", "valley", "wallet", "yellow", "zenith", "bridge"
+                    ],
+                    7: [
+                        "horizon", "package", "silence", "venture", "welcome", "balance", "capture", "dolphin",
+                        "element", "freedom", "gateway", "harmony", "iceberg", "journey", "kingdom", "library",
+                        "monarch", "network", "octagon", "pioneer", "quantum", "railway", "sapphire", "thunder",
+                        "upgrade", "vibrant", "whisper", "yielding", "zucchini", "crystal"
+                    ],
+                    8: [
+                        "absolute", "building", "calendar", "elephant", "furniture", "guardian", "hospital", "ignition",
+                        "junction", "keyboard", "landmark", "mountain", "navigator", "orchestra", "paradise", "qualified",
+                        "raincoat", "schedule", "telescope", "umbrella", "vacation", "waterfall", "xenon gas", "yardstick",
+                        "zeppelin", "asteroid", "backbone", "campfire", "dinosaur", "emperor"
+                    ]
+                };
+                const list = fallbacks[wordLength];
+                secretWord = list[Math.floor(Math.random() * list.length)];
+            }
+        }
+
+        function getLetterStatuses(guess, target) {
+            const statuses = new Array(guess.length).fill('absent');
+            const targetChars = target.split('');
+            const guessChars = guess.split('');
+
+            for (let i = 0; i < guessChars.length; i++) {
+                if (guessChars[i] === targetChars[i]) {
+                    statuses[i] = 'correct';
+                    targetChars[i] = null;
+                    guessChars[i] = null;
+                }
+            }
+
+            for (let i = 0; i < guessChars.length; i++) {
+                if (guessChars[i] !== null) {
+                    const targetIndex = targetChars.indexOf(guessChars[i]);
+                    if (targetIndex !== -1) {
+                        statuses[i] = 'present';
+                        targetChars[targetIndex] = null;
+                    }
+                }
+            }
+
+            return statuses;
+        }
+
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            let tileSize = wordLength > 6 ? 38 : 44;
+
+            for (let r = 0; r < maxGuesses; r++) {
+                const row = document.createElement('div');
+                row.className = 'grid-row';
+
+                const guessStr = guesses[r] || (r === guesses.length && currentGuess ? currentGuess : '');
+
+                for (let c = 0; c < wordLength; c++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.style.width = `${tileSize}px`;
+                    tile.style.height = `${tileSize}px`;
+
+                    const letter = guessStr[c] || '';
+                    tile.textContent = letter;
+                    if (letter) tile.classList.add('filled');
+
+                    if (r < guesses.length) {
+                        const statuses = getLetterStatuses(guesses[r], secretWord);
+                        tile.classList.add(statuses[c]);
+                    }
+                    row.appendChild(tile);
+                }
+                gridEl.appendChild(row);
+            }
+        }
+
+        function resetKeyboardColors() {
+            const keys = keyboardEl.querySelectorAll('.key');
+            keys.forEach(k => {
+                k.className = 'key' + (k.getAttribute('data-key').length > 1 ? ' wide' : '');
+            });
+        }
+
+        function updateKeyboardColors() {
+            const letterPriority = {'correct': 3, 'present': 2, 'absent': 1};
+            const bestStatuses = {};
+
+            guesses.forEach(guess => {
+                const statuses = getLetterStatuses(guess, secretWord);
+                for (let i = 0; i < guess.length; i++) {
+                    const char = guess[i];
+                    const status = statuses[i];
+                    if (!bestStatuses[char] || letterPriority[status] > letterPriority[bestStatuses[char]]) {
+                        bestStatuses[char] = status;
+                    }
+                }
+            });
+
+            for (const [char, status] of Object.entries(bestStatuses)) {
+                const keyBtn = keyboardEl.querySelector(`[data-key="${char.toLowerCase()}"]`);
+                if (keyBtn) {
+                    keyBtn.className = 'key ' + status + (keyBtn.getAttribute('data-key').length > 1 ? ' wide' : '');
+                }
+            }
+        }
+
+        keyboardEl.addEventListener('click', (e) => {
+            const keyBtn = e.target.closest('.key');
+            if (!keyBtn || isGameOver) return;
+            handleKey(keyBtn.getAttribute('data-key'));
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (isGameOver || gameScreen.classList.contains('hidden')) return;
+            const key = e.key.toLowerCase();
+            if (key === 'backspace') handleKey('BACK');
+            else if (key === 'enter') handleKey('ENTER');
+            else if (key >= 'a' && key <= 'z') handleKey(key);
+        });
+
+        function handleKey(key) {
+            initAudio();
+            if (key === 'BACK') {
+                if (currentGuess.length > 0) {
+                    playSound('tap');
+                    currentGuess = currentGuess.slice(0, -1);
+                    renderGrid();
+                }
+            } else if (key === 'ENTER') {
+                if (currentGuess.length !== wordLength) {
+                    playSound('wrong');
+                    feedbackEl.textContent = `Word must be ${wordLength} letters!`;
+                    return;
+                }
+                submitGuess();
+            } else {
+                if (currentGuess.length < wordLength) {
+                    playSound('tap');
+                    currentGuess += key.toLowerCase();
+                    renderGrid();
+                    feedbackEl.textContent = "";
+                }
+            }
+        }
+
+        function submitGuess() {
+            guesses.push(currentGuess);
+            currentGuess = "";
+            updateKeyboardColors();
+            renderGrid();
+
+            if (guesses[guesses.length - 1] === secretWord) {
+                isGameOver = true;
+                stats.played++;
+                stats.wins++;
+                stats.streak++;
+                localStorage.setItem('loxie_stats', JSON.stringify(stats));
+
+                playSound('win');
+                triggerConfetti(70);
+
+                setTimeout(() => {
+                    gameScreen.classList.add('hidden');
+                    endScreen.classList.remove('hidden');
+                    document.getElementById('end-title').textContent = "You Win! 🎉";
+                    endContentArea.innerHTML = `<p style="font-size: 1.1rem; opacity: 0.9; margin: 0;">The correct word was: <strong style="text-transform:uppercase; color:var(--correct);">${secretWord}</strong></p>`;
+                }, 600);
+            } else if (guesses.length >= maxGuesses) {
+                isGameOver = true;
+                stats.played++;
+                stats.streak = 0;
+                localStorage.setItem('loxie_stats', JSON.stringify(stats));
+
+                playSound('wrong');
+
+                setTimeout(() => {
+                    gameScreen.classList.add('hidden');
+                    endScreen.classList.remove('hidden');
+                    document.getElementById('end-title').textContent = "Nice Try!";
+
+                    endContentArea.innerHTML = `
+                        <button id="reveal-word-btn" class="reveal-btn">🔍 Reveal Word</button>
+                        <p id="revealed-word-text" style="font-size: 1.1rem; opacity: 0.9; margin: 0; display: none;"></p>
+                    `;
+
+                    document.getElementById('reveal-word-btn').addEventListener('click', function () {
+                        const revealText = document.getElementById('revealed-word-text');
+                        revealText.innerHTML = `The correct word was: <strong style="text-transform:uppercase; color:#f43f5e;">${secretWord}</strong>`;
+                        revealText.style.display = 'block';
+                        this.remove();
+                    });
+                }, 600);
+            }
+        }
+
+        fetchNewGame();
+    </script>
+</body>
+
+</html>
