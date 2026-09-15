@@ -21,21 +21,6 @@
             --modal-text: #f8fafc;
         }
 
-        [data-theme="light"] {
-            --bg-color: #f8fafc;
-            --text-color: #0f172a;
-            --border-color: #cbd5e1;
-            --key-bg: #e2e8f0;
-            --key-text: #0f172a;
-            --correct: #0891b2;
-            --present: #d97706;
-            --absent: #94a3b8;
-            --absent-text: #ffffff;
-            --primary-color: #0891b2;
-            --modal-bg: #ffffff;
-            --modal-text: #0f172a;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
@@ -236,14 +221,14 @@
 
         .tile.correct {
             background-color: var(--correct);
-            color: #0f172a;
+            color: var(--absent-text);
             border-color: var(--correct);
             font-weight: 900;
         }
 
         .tile.present {
             background-color: var(--present);
-            color: #0f172a;
+            color: var(--absent-text);
             border-color: var(--present);
             font-weight: 900;
         }
@@ -299,13 +284,13 @@
 
         .key.correct {
             background-color: var(--correct) !important;
-            color: #0f172a !important;
+            color: var(--absent-text) !important;
             font-weight: bold;
         }
 
         .key.present {
             background-color: var(--present) !important;
-            color: #0f172a !important;
+            color: var(--absent-text) !important;
             font-weight: bold;
         }
 
@@ -345,11 +330,13 @@
             color: var(--modal-text);
             padding: 1.5rem;
             border-radius: 12px;
-            max-width: 340px;
+            max-width: 400px;
             width: 90%;
             text-align: left;
             box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
             border: 1px solid var(--border-color);
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .modal-content h2 {
@@ -395,10 +382,51 @@
             border: 1px solid var(--border-color);
             background: var(--bg-color);
             color: var(--text-color);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             box-sizing: border-box;
-            margin-top: 8px;
-            margin-bottom: 4px;
+            margin-top: 6px;
+        }
+
+        .theme-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary-color);
+            font-weight: 800;
+            margin: 12px 0 6px 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 2px;
+        }
+
+        .theme-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .theme-row input[type="color"] {
+            border: 2px solid var(--border-color);
+            width: 42px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: none;
+            padding: 0;
+        }
+
+        .definition-link {
+            text-decoration: underline;
+            cursor: pointer;
+            color: var(--primary-color);
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .definition-link:hover {
+            opacity: 0.8;
         }
 
         #confetti-canvas {
@@ -413,7 +441,7 @@
     </style>
 </head>
 
-<body data-theme="dark">
+<body>
 
     <canvas id="confetti-canvas"></canvas>
 
@@ -427,7 +455,7 @@
                 <h1>LOXIE</h1>
             </div>
             <div class="nav-group">
-                <button id="theme-btn" class="nav-btn" title="Toggle Theme">☀️</button>
+                <button id="theme-editor-btn" class="nav-btn" title="Theme Studio">🎨</button>
                 <button id="code-menu-btn" class="nav-btn" title="New Game / Enter Code">
                     <svg viewBox="0 0 24 24">
                         <path
@@ -522,6 +550,68 @@
         </div>
     </div>
 
+    <!-- Theme Editor Modal -->
+    <div id="theme-editor-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>🎨 Theme Studio</h2>
+            <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0.75rem; text-align: center;">
+                Design your custom look or load a preset below.
+            </p>
+
+            <div style="margin-bottom: 12px;">
+                <label
+                    style="font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 4px; opacity: 0.8;">QUICK
+                    PRESETS:</label>
+                <div style="display: flex; gap: 4px;">
+                    <button class="btn-secondary" style="margin-top:0; font-size: 0.8rem;"
+                        onclick="applyPreset('dark')">Midnight Dark</button>
+                    <button class="btn-secondary" style="margin-top:0; font-size: 0.8rem;"
+                        onclick="applyPreset('light')">Clean Light</button>
+                    <button class="btn-secondary" style="margin-top:0; font-size: 0.8rem;"
+                        onclick="applyPreset('classic')">Classic Green</button>
+                </div>
+            </div>
+
+            <div style="max-height: 230px; overflow-y: auto; padding-right: 4px;">
+                <div class="theme-section-title">General Layout</div>
+                <div class="theme-row"><span>App Background</span><input type="color" data-var="--bg-color"></div>
+                <div class="theme-row"><span>Page Text Color</span><input type="color" data-var="--text-color"></div>
+                <div class="theme-row"><span>Borders & Outlines</span><input type="color" data-var="--border-color">
+                </div>
+                <div class="theme-row"><span>Primary Accent</span><input type="color" data-var="--primary-color"></div>
+
+                <div class="theme-section-title">Game Board & Keyboard</div>
+                <div class="theme-row"><span>Unused Keyboard Key</span><input type="color" data-var="--key-bg"></div>
+                <div class="theme-row"><span>Correct Spot Found</span><input type="color" data-var="--correct"></div>
+                <div class="theme-row"><span>Present Letter (Wrong Spot)</span><input type="color" data-var="--present">
+                </div>
+                <div class="theme-row"><span>Absent / Missing Letter</span><input type="color" data-var="--absent">
+                </div>
+
+                <div class="theme-section-title">Dialog Popups</div>
+                <div class="theme-row"><span>Modal Box Background</span><input type="color" data-var="--modal-bg"></div>
+                <div class="theme-row"><span>Modal Text Color</span><input type="color" data-var="--modal-text"></div>
+            </div>
+
+            <div style="margin-top: 14px; border-top: 1px dashed var(--border-color); padding-top: 10px;">
+                <label
+                    style="font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 2px; opacity: 0.8;">SHARE
+                    OR IMPORT PALETTE:</label>
+                <textarea id="theme-json-input" class="code-input" placeholder="Paste custom theme code here..."
+                    style="height: 42px; resize: none;"></textarea>
+                <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <button class="btn-secondary" style="margin-top:0; font-size: 0.8rem;"
+                        onclick="exportThemeSettings()">📤 Share Code</button>
+                    <button class="btn-secondary" style="margin-top:0; font-size: 0.8rem;"
+                        onclick="importThemeSettings()">📥 Import Code</button>
+                </div>
+            </div>
+
+            <button id="save-theme-btn" class="btn-main">Save & Apply Theme ✨</button>
+            <button id="close-theme-btn" class="btn-secondary" style="margin-top: 0.25rem;">Close</button>
+        </div>
+    </div>
+
     <!-- Help Modal -->
     <div id="help-modal" class="modal hidden">
         <div class="modal-content">
@@ -529,11 +619,24 @@
             <p style="font-size: 0.9rem; line-height: 1.6;">
                 Guess the hidden word in 6 attempts (7 attempts for 7+ letter words). Length varies from 5 to 8
                 characters.<br><br>
-                💠 <strong>Cyan</strong> = Letter & spot verified.<br>
-                🔶 <strong>Amber</strong> = Letter exists, wrong spot.<br>
-                ⬛ <strong>Slate</strong> = Letter not in word.<br><br>
+            </p>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.9rem;">
+                <div class="tile correct" style="width: 28px; height: 28px; font-size: 0.9rem; flex-shrink: 0;">A</div>
+                <div><strong>Correct Spot:</strong> The letter is in the word and in the correct position.</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.9rem;">
+                <div class="tile present" style="width: 28px; height: 28px; font-size: 0.9rem; flex-shrink: 0;">B</div>
+                <div><strong>Wrong Spot:</strong> The letter is in the word, but in a different position.</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 0.9rem;">
+                <div class="tile absent" style="width: 28px; height: 28px; font-size: 0.9rem; flex-shrink: 0;">C</div>
+                <div><strong>Not Included:</strong> The letter is not in the word.</div>
+            </div>
+            <p style="font-size: 0.9rem; line-height: 1.6;">
+                🎨 <strong>Theme Studio:</strong> Click the palette icon in the top bar anytime to customize your
+                palette, switch presets, or share theme codes!<br><br>
                 <strong>Challenging Friends:</strong> Once you finish a game, click "Share Score Grid" to copy your
-                emoji results and challenge link to share with friends!
+                results and challenge link!
             </p>
             <button id="close-help-btn" class="btn-main">Got It</button>
         </div>
@@ -563,18 +666,118 @@
     </div>
 
     <script>
-        const themeBtn = document.getElementById('theme-btn');
-        const savedTheme = localStorage.getItem('loxie_theme') || 'dark';
-        document.body.setAttribute('data-theme', savedTheme);
-        themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        const defaultThemes = {
+            dark: {
+                "--bg-color": "#0f172a", "--text-color": "#f8fafc", "--border-color": "#334155",
+                "--key-bg": "#1e293b", "--key-text": "#f8fafc", "--correct": "#06b6d4",
+                "--present": "#f59e0b", "--absent": "#475569", "--absent-text": "#ffffff",
+                "--primary-color": "#06b6d4", "--modal-bg": "#1e293b", "--modal-text": "#f8fafc"
+            },
+            light: {
+                "--bg-color": "#f8fafc", "--text-color": "#0f172a", "--border-color": "#cbd5e1",
+                "--key-bg": "#e2e8f0", "--key-text": "#0f172a", "--correct": "#0891b2",
+                "--present": "#d97706", "--absent": "#94a3b8", "--absent-text": "#ffffff",
+                "--primary-color": "#0891b2", "--modal-bg": "#ffffff", "--modal-text": "#0f172a"
+            },
+            classic: {
+                "--bg-color": "#ffffff", "--text-color": "#1a1a1b", "--border-color": "#d3d6da",
+                "--key-bg": "#d3d6da", "--key-text": "#1a1a1b", "--correct": "#6aaa64",
+                "--present": "#c9b458", "--absent": "#787c7e", "--absent-text": "#ffffff",
+                "--primary-color": "#538d4e", "--modal-bg": "#ffffff", "--modal-text": "#1a1a1b"
+            }
+        };
 
-        themeBtn.addEventListener('click', () => {
-            const currentTheme = document.body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.body.setAttribute('data-theme', newTheme);
-            themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
-            localStorage.setItem('loxie_theme', newTheme);
+        function applyTheme(themeObj) {
+            for (const [key, value] of Object.entries(themeObj)) {
+                document.documentElement.style.setProperty(key, value);
+            }
+        }
+
+        function loadSavedTheme() {
+            const saved = localStorage.getItem('loxie_custom_theme');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    applyTheme(parsed);
+                } catch (e) {
+                    applyTheme(defaultThemes.dark);
+                }
+            } else {
+                applyTheme(defaultThemes.dark);
+            }
+        }
+        loadSavedTheme();
+
+        const themeEditorModal = document.getElementById('theme-editor-modal');
+        document.getElementById('theme-editor-btn').addEventListener('click', () => {
+            const colorInputs = themeEditorModal.querySelectorAll('input[type="color"]');
+            colorInputs.forEach(input => {
+                const varName = input.getAttribute('data-var');
+                const val = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+                if (val && val.startsWith('#')) {
+                    input.value = val;
+                }
+            });
+            themeEditorModal.classList.remove('hidden');
         });
+        document.getElementById('close-theme-btn').addEventListener('click', () => themeEditorModal.classList.add('hidden'));
+
+        function applyPreset(presetName) {
+            if (defaultThemes[presetName]) {
+                applyTheme(defaultThemes[presetName]);
+                const colorInputs = themeEditorModal.querySelectorAll('input[type="color"]');
+                colorInputs.forEach(input => {
+                    const varName = input.getAttribute('data-var');
+                    const val = defaultThemes[presetName][varName];
+                    if (val) input.value = val;
+                });
+            }
+        }
+
+        function getCurrentThemeObject() {
+            const theme = {};
+            const colorInputs = themeEditorModal.querySelectorAll('input[type="color"]');
+            colorInputs.forEach(input => {
+                theme[input.getAttribute('data-var')] = input.value;
+            });
+            theme['--absent-text'] = '#ffffff';
+            theme['--key-text'] = theme['--text-color'];
+            return theme;
+        }
+
+        document.getElementById('save-theme-btn').addEventListener('click', () => {
+            const currentTheme = getCurrentThemeObject();
+            localStorage.setItem('loxie_custom_theme', JSON.stringify(currentTheme));
+            applyTheme(currentTheme);
+            themeEditorModal.classList.add('hidden');
+        });
+
+        function exportThemeSettings() {
+            const currentTheme = getCurrentThemeObject();
+            const jsonStr = JSON.stringify(currentTheme);
+            const textarea = document.getElementById('theme-json-input');
+            textarea.value = jsonStr;
+            navigator.clipboard.writeText(jsonStr).then(() => {
+                alert("Theme code copied to your clipboard!");
+            });
+        }
+
+        function importThemeSettings() {
+            try {
+                const val = document.getElementById('theme-json-input').value.trim();
+                const parsed = JSON.parse(val);
+                applyTheme(parsed);
+                localStorage.setItem('loxie_custom_theme', JSON.stringify(parsed));
+                const colorInputs = themeEditorModal.querySelectorAll('input[type="color"]');
+                colorInputs.forEach(input => {
+                    const varName = input.getAttribute('data-var');
+                    if (parsed[varName]) input.value = parsed[varName];
+                });
+                alert("Theme successfully imported!");
+            } catch (e) {
+                alert("Invalid theme code format. Please check the text and try again.");
+            }
+        }
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
@@ -1024,7 +1227,6 @@
 
             if (key === 'backspace') handleKey('BACK');
             else if (key === 'enter') handleKey('ENTER');
-            // Added key.length === 1 so function keys like F5 are ignored completely
             else if (key.length === 1 && key >= 'a' && key <= 'z') handleKey(key);
         });
 
@@ -1060,6 +1262,8 @@
             renderGrid();
             saveGameState();
 
+            const mwUrl = `https://www.merriam-webster.com/dictionary/${secretWord}`;
+
             if (guesses[guesses.length - 1] === secretWord) {
                 isGameOver = true;
                 stats.played++;
@@ -1075,7 +1279,11 @@
                     gameScreen.classList.add('hidden');
                     endScreen.classList.remove('hidden');
                     document.getElementById('end-title').textContent = "You Win! 🎉";
-                    endContentArea.innerHTML = `<p style="font-size: 1.1rem; opacity: 0.9; margin: 0;">The correct word was: <strong style="text-transform:uppercase; color:var(--correct);">${secretWord}</strong></p>`;
+                    endContentArea.innerHTML = `
+                        <p style="font-size: 1.1rem; opacity: 0.9; margin: 0;">
+                            The correct word was: <a href="${mwUrl}" target="_blank" class="definition-link" style="text-transform:uppercase; color:var(--correct);">${secretWord} ↗</a>
+                        </p>
+                    `;
                 }, 600);
             } else if (guesses.length >= maxGuesses) {
                 isGameOver = true;
@@ -1098,7 +1306,7 @@
 
                     document.getElementById('reveal-word-btn').addEventListener('click', function () {
                         const revealText = document.getElementById('revealed-word-text');
-                        revealText.innerHTML = `The correct word was: <strong style="text-transform:uppercase; color:#f43f5e;">${secretWord}</strong>`;
+                        revealText.innerHTML = `The correct word was: <a href="${mwUrl}" target="_blank" class="definition-link" style="text-transform:uppercase; color:#f43f5e;">${secretWord} ↗</a>`;
                         revealText.style.display = 'block';
                         this.remove();
                     });
