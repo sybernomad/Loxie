@@ -425,14 +425,16 @@
             opacity: 0.8;
         }
 
-        .stat-tab {
+        .stat-tab,
+        .len-tab {
             margin-top: 0;
             padding: 6px 8px;
             font-size: 0.75rem;
             flex: 1;
         }
 
-        .stat-tab.active-tab {
+        .stat-tab.active-tab,
+        .len-tab.active-tab {
             background-color: var(--primary-color);
             color: #0f172a;
             border-color: var(--primary-color);
@@ -465,21 +467,21 @@
             </div>
             <div class="nav-group">
                 <button id="theme-editor-btn" class="nav-btn" title="Theme Studio">🎨</button>
-                <button id="code-menu-btn" class="nav-btn" title="New Game / Enter Code">
+                <button id="code-menu-btn" class="nav-btn" title="New Game Options">
                     <svg viewBox="0 0 24 24">
                         <path
                             d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
                     </svg>
                 </button>
-                <button id="help-btn" class="nav-btn" title="Help">❓</button>
-                <button id="stats-btn" class="nav-btn" title="Stats">📊</button>
+                <button id="help-btn" class="nav-btn" title="How to Play">❓</button>
+                <button id="stats-btn" class="nav-btn" title="Statistics">📊</button>
             </div>
         </header>
 
         <!-- Loader Screen -->
         <div id="loader-screen" class="loader-screen">
             <div class="spinner"></div>
-            <div id="loading-text">Loading game...</div>
+            <div id="loading-text">Preparing game...</div>
         </div>
 
         <!-- Main Game Screen -->
@@ -536,26 +538,47 @@
             <div id="end-content-area"
                 style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 0.8rem;">
             </div>
-            <button id="share-code-btn" class="share-code-btn">📊 Share Score Grid</button>
+            <button id="share-code-btn" class="share-code-btn">📊 Share Result Grid</button>
             <button id="play-again-btn" class="btn-secondary"
-                style="padding: 12px 24px; margin-top: 0.8rem; border-color: var(--primary-color); color: var(--primary-color);">New
-                Game 🔄</button>
+                style="padding: 12px 24px; margin-top: 0.8rem; border-color: var(--primary-color); color: var(--primary-color);">Play
+                Again 🔄</button>
         </div>
     </div>
 
     <!-- Code Modal -->
     <div id="code-modal" class="modal hidden">
         <div class="modal-content">
-            <h2>New Game / Challenge Code</h2>
+            <h2>Start a New Game</h2>
             <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0.5rem;">
-                Start a fresh random game or paste a challenge code / link below:
+                Select your preferred word length or load a friend's challenge link below:
             </p>
-            <input type="text" id="code-input" class="code-input" placeholder="Paste challenge code or URL...">
-            <div id="code-error" style="font-size: 0.75rem; color: #f43f5e; min-height: 16px; margin-bottom: 4px;">
+
+            <!-- Word Length Selector for New Game -->
+            <div style="margin-bottom: 10px;">
+                <label
+                    style="font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 4px; opacity: 0.8;">WORD
+                    LENGTH:</label>
+                <div style="display: flex; gap: 4px;" id="new-game-len-selector">
+                    <button class="btn-secondary len-tab active-tab" data-len="5">5 Letters</button>
+                    <button class="btn-secondary len-tab" data-len="6">6 Letters</button>
+                    <button class="btn-secondary len-tab" data-len="7">7 Letters</button>
+                    <button class="btn-secondary len-tab" data-len="8">8 Letters</button>
+                </div>
             </div>
-            <button id="load-code-btn" class="btn-main">Load Challenge Code 🔑</button>
-            <button id="random-game-btn" class="btn-secondary">Generate Random Game 🎲</button>
-            <button id="close-code-btn" class="btn-secondary" style="margin-top: 0.25rem;">Cancel</button>
+
+            <button id="random-game-btn" class="btn-main">Start New Game 🎲</button>
+
+            <div style="margin: 12px 0 6px 0; border-top: 1px dashed var(--border-color); padding-top: 10px;">
+                <label
+                    style="font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 4px; opacity: 0.8;">OR
+                    LOAD A CHALLENGE:</label>
+                <input type="text" id="code-input" class="code-input" placeholder="Paste challenge link or code...">
+                <div id="code-error" style="font-size: 0.75rem; color: #f43f5e; min-height: 16px; margin-bottom: 4px;">
+                </div>
+                <button id="load-code-btn" class="btn-secondary" style="margin-top: 2px;">Load Challenge 🔑</button>
+            </div>
+
+            <button id="close-code-btn" class="btn-secondary" style="margin-top: 0.5rem;">Cancel</button>
         </div>
     </div>
 
@@ -626,12 +649,12 @@
         <div class="modal-content">
             <h2>How To Play</h2>
             <p style="font-size: 0.9rem; line-height: 1.6;">
-                Guess the hidden word in 6 attempts (7 attempts for 7+ letter words). Length varies from 5 to 8
-                characters.<br><br>
+                Guess the hidden word! You get 6 attempts for 5-6 letter words, and 7 attempts for 7-8 letter
+                words.<br><br>
             </p>
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.9rem;">
                 <div class="tile correct" style="width: 28px; height: 28px; font-size: 0.9rem; flex-shrink: 0;">A</div>
-                <div><strong>Correct Spot:</strong> The letter is in the word and in the correct position.</div>
+                <div><strong>Correct Spot:</strong> The letter is in the word and in the right position.</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.9rem;">
                 <div class="tile present" style="width: 28px; height: 28px; font-size: 0.9rem; flex-shrink: 0;">B</div>
@@ -639,13 +662,13 @@
             </div>
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 0.9rem;">
                 <div class="tile absent" style="width: 28px; height: 28px; font-size: 0.9rem; flex-shrink: 0;">C</div>
-                <div><strong>Not Included:</strong> The letter is not in the word.</div>
+                <div><strong>Not Included:</strong> The letter is not part of the word.</div>
             </div>
             <p style="font-size: 0.9rem; line-height: 1.6;">
-                🎨 <strong>Theme Studio:</strong> Click the palette icon in the top bar anytime to customize your
-                palette, switch presets, or share theme codes!<br><br>
-                <strong>Challenging Friends:</strong> Once you finish a game, click "Share Score Grid" to copy your
-                results and challenge link!
+                🎨 <strong>Theme Studio:</strong> Click the palette icon in the top header anytime to customize your
+                style or load presets!<br><br>
+                <strong>Challenge Friends:</strong> Finish a game and click "Share Result Grid" to copy your emoji board
+                and direct challenge link!
             </p>
             <button id="close-help-btn" class="btn-main">Got It</button>
         </div>
@@ -699,7 +722,6 @@
     <script src="valid-words.js"></script>
 
     <script>
-        // Set up O(1) dictionary lookups from valid-words.js
         const wordDict = {};
         if (window.LOXIE_DICTIONARY) {
             for (const [len, words] of Object.entries(window.LOXIE_DICTIONARY)) {
@@ -709,7 +731,7 @@
 
         function isValidWord(word) {
             const len = word.length;
-            if (!wordDict[len]) return true; // Fallback if script is missing
+            if (!wordDict[len]) return true;
             return wordDict[len].has(word.toLowerCase());
         }
 
@@ -935,6 +957,7 @@
         let guesses = [];
         let currentGuess = "";
         let isGameOver = false;
+        let selectedNewGameLen = 5;
 
         let stats = {
             5: {played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}},
@@ -1004,6 +1027,15 @@
             });
         });
 
+        const lenTabs = codeModal.querySelectorAll('.len-tab');
+        lenTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                lenTabs.forEach(t => t.classList.remove('active-tab'));
+                e.target.classList.add('active-tab');
+                selectedNewGameLen = parseInt(e.target.getAttribute('data-len'));
+            });
+        });
+
         function updateStatsModal(len) {
             statTabs.forEach(t => {
                 if (parseInt(t.getAttribute('data-len')) === len) {
@@ -1060,13 +1092,13 @@
             codeModal.classList.add('hidden');
             localStorage.removeItem('loxie_saved_game');
             window.history.replaceState({}, document.title, window.location.pathname);
-            fetchNewGame();
+            fetchNewGame(selectedNewGameLen);
         });
 
         document.getElementById('load-code-btn').addEventListener('click', () => {
             let val = codeInput.value.trim();
             if (!val) {
-                codeError.textContent = "Please provide a code or URL.";
+                codeError.textContent = "Please enter a challenge code or link.";
                 return;
             }
 
@@ -1086,17 +1118,17 @@
                     window.history.replaceState({}, document.title, `${window.location.pathname}?seed=${btoa(decoded)}`);
                     fetchNewGame();
                 } else {
-                    codeError.textContent = "Invalid code format (must decode to 5-8 alphabetic characters).";
+                    codeError.textContent = "Invalid challenge format.";
                 }
             } catch (e) {
-                codeError.textContent = "Malformed challenge code string.";
+                codeError.textContent = "Malformed challenge code or link.";
             }
         });
 
         document.getElementById('play-again-btn').addEventListener('click', () => {
             localStorage.removeItem('loxie_saved_game');
             window.history.replaceState({}, document.title, window.location.pathname);
-            fetchNewGame();
+            fetchNewGame(selectedNewGameLen);
         });
 
         shareCodeBtn.addEventListener('click', () => {
@@ -1116,11 +1148,11 @@
                 gridText += '\n';
             });
 
-            gridText += `\nCan you beat this? Try the challenge here:\n${shareUrl}`;
+            gridText += `\nCan you beat my score? Play here:\n${shareUrl}`;
 
             navigator.clipboard.writeText(gridText).then(() => {
-                shareCodeBtn.textContent = "✅ Score Grid Copied!";
-                setTimeout(() => {shareCodeBtn.textContent = "📊 Share Score Grid";}, 2000);
+                shareCodeBtn.textContent = "✅ Result Copied!";
+                setTimeout(() => {shareCodeBtn.textContent = "📊 Share Result Grid";}, 2000);
             });
         });
 
@@ -1133,7 +1165,7 @@
             localStorage.setItem('loxie_saved_game', JSON.stringify(gameState));
         }
 
-        async function fetchNewGame() {
+        async function fetchNewGame(forcedLen = null) {
             initAudio();
 
             isGameOver = false;
@@ -1148,7 +1180,7 @@
             const seedParam = urlParams.get('seed');
 
             if (seedParam) {
-                loadingText.textContent = "Loading shared word...";
+                loadingText.textContent = "Loading challenge word...";
                 try {
                     const decoded = atob(seedParam).toLowerCase().trim();
                     if (decoded.length >= 5 && decoded.length <= 8 && /^[a-z]+$/.test(decoded)) {
@@ -1159,9 +1191,12 @@
                         throw new Error("Invalid code format");
                     }
                 } catch (e) {
-                    loadingText.textContent = "Invalid code, generating random...";
-                    pickRandomWordFromDict();
+                    loadingText.textContent = "Invalid challenge, starting new game...";
+                    pickRandomWordFromDict(forcedLen);
                 }
+            } else if (forcedLen) {
+                loadingText.textContent = "Preparing game...";
+                pickRandomWordFromDict(forcedLen);
             } else {
                 const savedGameJson = localStorage.getItem('loxie_saved_game');
                 if (savedGameJson) {
@@ -1174,11 +1209,11 @@
                         isGameOver = savedGame.isGameOver || false;
                     } catch (e) {
                         localStorage.removeItem('loxie_saved_game');
-                        pickRandomWordFromDict();
+                        pickRandomWordFromDict(selectedNewGameLen);
                     }
                 } else {
-                    loadingText.textContent = "Loading game...";
-                    pickRandomWordFromDict();
+                    loadingText.textContent = "Preparing game...";
+                    pickRandomWordFromDict(selectedNewGameLen);
                 }
             }
 
@@ -1188,7 +1223,7 @@
                 guesses = [];
             }
 
-            statusInfo.textContent = `Guess the ${wordLength}-letter word!`;
+            statusInfo.textContent = `Guess the ${wordLength}-letter word`;
 
             loaderScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
@@ -1199,15 +1234,14 @@
             saveGameState();
         }
 
-        function pickRandomWordFromDict() {
-            wordLength = Math.floor(Math.random() * 4) + 5;
+        function pickRandomWordFromDict(forcedLen = null) {
+            wordLength = forcedLen || selectedNewGameLen;
             if (wordDict[wordLength] && wordDict[wordLength].size > 0) {
                 const wordArray = Array.from(wordDict[wordLength]);
                 secretWord = wordArray[Math.floor(Math.random() * wordArray.length)];
             } else {
-                // Hardcoded safety fallback if dictionary fails to load
                 const fallbacks = {5: "apple", 6: "planet", 7: "horizon", 8: "absolute"};
-                secretWord = fallbacks[wordLength];
+                secretWord = fallbacks[wordLength] || "apple";
             }
         }
 
@@ -1323,13 +1357,12 @@
             } else if (key === 'ENTER') {
                 if (currentGuess.length !== wordLength) {
                     playSound('wrong');
-                    feedbackEl.textContent = `Word must be ${wordLength} letters!`;
+                    feedbackEl.textContent = `Not enough letters (${wordLength} required)`;
                     return;
                 }
-                // Check dictionary validation
                 if (!isValidWord(currentGuess)) {
                     playSound('wrong');
-                    feedbackEl.textContent = "Not in word list!";
+                    feedbackEl.textContent = "Not in word list";
                     return;
                 }
                 submitGuess();
@@ -1370,10 +1403,10 @@
                 setTimeout(() => {
                     gameScreen.classList.add('hidden');
                     endScreen.classList.remove('hidden');
-                    document.getElementById('end-title').textContent = "You Win! 🎉";
+                    document.getElementById('end-title').textContent = "Splendid! 🎉";
                     endContentArea.innerHTML = `
                         <p style="font-size: 1.1rem; opacity: 0.9; margin: 0;">
-                            The correct word was: <a href="${mwUrl}" target="_blank" class="definition-link" style="text-transform:uppercase; color:var(--correct);">${secretWord} ↗</a>
+                            The word was: <a href="${mwUrl}" target="_blank" class="definition-link" style="text-transform:uppercase; color:var(--correct);">${secretWord} ↗</a>
                         </p>
                     `;
                 }, 600);
@@ -1391,7 +1424,7 @@
                 setTimeout(() => {
                     gameScreen.classList.add('hidden');
                     endScreen.classList.remove('hidden');
-                    document.getElementById('end-title').textContent = "Nice Try!";
+                    document.getElementById('end-title').textContent = "Game Over";
 
                     endContentArea.innerHTML = `
                         <button id="reveal-word-btn" class="reveal-btn">🔍 Reveal Word</button>
@@ -1400,7 +1433,7 @@
 
                     document.getElementById('reveal-word-btn').addEventListener('click', function () {
                         const revealText = document.getElementById('revealed-word-text');
-                        revealText.innerHTML = `The correct word was: <a href="${mwUrl}" target="_blank" class="definition-link" style="text-transform:uppercase; color:#f43f5e;">${secretWord} ↗</a>`;
+                        revealText.innerHTML = `The word was: <a href="${mwUrl}" target="_blank" class="definition-link" style="text-transform:uppercase; color:#f43f5e;">${secretWord} ↗</a>`;
                         revealText.style.display = 'block';
                         this.remove();
                     });
