@@ -1,0 +1,2652 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Loxie - a word-guessing puzzle with 5 to 8 letter words, custom themes and shareable challenges.">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Loxie">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Loxie</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --border-color: #334155;
+            --key-bg: #1e293b;
+            --key-text: #f8fafc;
+            --correct: #06b6d4;
+            --present: #f59e0b;
+            --absent: #475569;
+            --absent-text: #ffffff;
+            --primary-color: #06b6d4;
+            --modal-bg: #1e293b;
+            --modal-text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            background-color: var(--bg-color);
+            padding: 1rem;
+            padding-top: max(1rem, env(safe-area-inset-top));
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            border-bottom: 2px dashed var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            fill: var(--primary-color);
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            margin: 0;
+            letter-spacing: 3px;
+            color: var(--primary-color);
+            font-weight: 900;
+        }
+
+        .nav-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-color);
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        .nav-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--text-color);
+        }
+
+        .nav-btn:hover {
+            background-color: var(--border-color);
+            opacity: 0.9;
+        }
+
+        .status-info {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .share-code-btn {
+            background-color: var(--primary-color);
+            color: #0f172a;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 900;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: filter 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 0.5rem;
+            width: 100%;
+            max-width: 260px;
+        }
+
+        .share-code-btn svg, .btn-main svg, .btn-secondary svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .share-code-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .reveal-btn {
+            background-color: transparent;
+            border: 1px dashed var(--border-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .reveal-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .reveal-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .loader-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 250px;
+            gap: 12px;
+            font-weight: bold;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .grid {
+            display: grid;
+            grid-gap: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .grid-row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .tile {
+            width: 44px;
+            height: 44px;
+            border: 2px solid var(--border-color);
+            font-size: 1.3rem;
+            font-weight: 800;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+            user-select: none;
+            border-radius: 6px;
+            color: var(--text-color);
+            transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        .tile.filled {
+            border-color: var(--primary-color);
+            transform: scale(1.03);
+        }
+
+        .tile.correct {
+            background-color: var(--correct);
+            color: var(--absent-text);
+            border-color: var(--correct);
+            font-weight: 900;
+        }
+
+        .tile.present {
+            background-color: var(--present);
+            color: var(--absent-text);
+            border-color: var(--present);
+            font-weight: 900;
+        }
+
+        .tile.absent {
+            background-color: var(--absent);
+            color: var(--absent-text);
+            border-color: var(--absent);
+        }
+
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            max-width: 460px;
+            user-select: none;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .key {
+            background-color: var(--key-bg);
+            color: var(--key-text);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 12px 0;
+            flex: 1;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+            box-sizing: border-box;
+            transition: filter 0.2s, background-color 0.3s, color 0.3s;
+        }
+
+        .key:active {
+            filter: brightness(1.2);
+        }
+
+        .key.wide {
+            flex: 1.5;
+            font-size: 0.75rem;
+        }
+
+        .key.correct {
+            background-color: var(--correct) !important;
+            color: var(--absent-text) !important;
+            font-weight: bold;
+        }
+
+        .key.present {
+            background-color: var(--present) !important;
+            color: var(--absent-text) !important;
+            font-weight: bold;
+        }
+
+        .key.absent {
+            background-color: var(--absent) !important;
+            color: var(--absent-text);
+        }
+
+        .feedback {
+            font-size: 1rem;
+            font-weight: bold;
+            min-height: 24px;
+            margin-bottom: 8px;
+            color: #f43f5e;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: var(--modal-bg);
+            color: var(--modal-text);
+            padding: 1.5rem;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            text-align: left;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .btn-main {
+            background-color: var(--primary-color);
+            color: #0f172a;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 900;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 0.85rem;
+            box-sizing: border-box;
+            margin-top: 6px;
+        }
+
+        .theme-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary-color);
+            font-weight: 800;
+            margin: 12px 0 6px 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 2px;
+        }
+
+        .theme-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .theme-row input[type="color"] {
+            border: 2px solid var(--border-color);
+            width: 42px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: none;
+            padding: 0;
+        }
+
+        .definition-link {
+            text-decoration: underline;
+            cursor: pointer;
+            color: var(--primary-color);
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .definition-link:hover {
+            opacity: 0.8;
+        }
+
+        .stat-tab {
+            margin-top: 0;
+            padding: 6px 4px;
+            font-size: 0.65rem;
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-tab.active-tab {
+            background-color: var(--primary-color);
+            color: #0f172a;
+            border-color: var(--primary-color);
+        }
+
+        .credits-list {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            padding-left: 1.1rem;
+            margin: 0.25rem 0 0.75rem 0;
+        }
+
+        .credits-list li {
+            margin-bottom: 6px;
+        }
+
+        .credits-list a,
+        .footer-link {
+            color: var(--primary-color);
+        }
+
+        .app-footer {
+            margin-top: 14px;
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+
+        .footer-link {
+            background: none;
+            border: none;
+            padding: 0;
+            font: inherit;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* ---------- Shared modal polish ---------- */
+        .modal:not(.hidden) .modal-content {
+            animation: modal-pop 0.18s ease-out;
+        }
+
+        @keyframes modal-pop {
+            from { opacity: 0; transform: translateY(8px) scale(0.98); }
+            to { opacity: 1; transform: none; }
+        }
+
+        .modal-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--modal-text);
+            opacity: 0.6;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+            background: var(--border-color);
+        }
+
+        .modal-close svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .section {
+            background: color-mix(in srgb, var(--modal-text) 5%, transparent);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 12px 12px;
+            margin-bottom: 10px;
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            margin: 0 0 8px 0;
+        }
+
+        .section-label svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            opacity: 0.75;
+            margin: 2px 0 5px;
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            opacity: 0.75;
+            line-height: 1.4;
+            margin: 6px 0 0;
+            min-height: 1.05em;
+        }
+
+        .warn-note {
+            font-size: 0.72rem;
+            color: var(--present);
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        /* Segmented selectors */
+        .segmented {
+            display: flex;
+            gap: 3px;
+            padding: 3px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+        }
+
+        .seg-btn {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            background: none;
+            color: var(--modal-text);
+            padding: 8px 2px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: background-color 0.15s, color 0.15s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .seg-btn.small {
+            font-size: 0.64rem;
+            padding: 8px 0;
+            letter-spacing: -0.2px;
+        }
+
+        @media (max-width: 420px) {
+            .modal-content {
+                padding: 1.1rem 0.9rem;
+                width: 94%;
+            }
+
+            .section {
+                padding: 9px 9px 10px;
+            }
+        }
+
+        .seg-btn:hover {
+            background: var(--border-color);
+        }
+
+        .seg-btn.active-tab {
+            background: var(--primary-color);
+            color: #0f172a;
+        }
+
+        /* Toggle switches */
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 6px 0;
+            cursor: pointer;
+        }
+
+        .setting-row + .setting-row {
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .setting-text strong {
+            display: block;
+            font-size: 0.88rem;
+        }
+
+        .setting-text span {
+            font-size: 0.72rem;
+            opacity: 0.7;
+        }
+
+        .switch {
+            position: relative;
+            flex-shrink: 0;
+            width: 42px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .switch .track {
+            position: absolute;
+            inset: 0;
+            background: var(--border-color);
+            border-radius: 24px;
+            transition: background-color 0.2s;
+        }
+
+        .switch .track::before {
+            content: "";
+            position: absolute;
+            left: 3px;
+            top: 3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform 0.2s;
+        }
+
+        .switch input:checked + .track {
+            background: var(--primary-color);
+        }
+
+        .switch input:checked + .track::before {
+            transform: translateX(18px);
+        }
+
+        .switch input:focus-visible + .track {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .volume-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 2px 0 6px;
+            font-size: 0.72rem;
+            opacity: 0.85;
+        }
+
+        .volume-row input[type="range"] {
+            flex: 1;
+            accent-color: var(--primary-color);
+        }
+
+        .inline-input {
+            display: flex;
+            gap: 6px;
+        }
+
+        .inline-input .code-input {
+            margin-top: 0;
+            flex: 1;
+        }
+
+        .inline-input .btn-secondary {
+            width: auto;
+            margin-top: 0;
+            padding: 0 12px;
+            white-space: nowrap;
+        }
+
+        /* ---------- Theme Studio ---------- */
+        .theme-preview {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            padding: 12px 8px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .theme-preview .tile {
+            width: 36px;
+            height: 36px;
+            font-size: 1.05rem;
+            transform: none;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .preset-card {
+            border: 2px solid var(--border-color);
+            border-radius: 9px;
+            padding: 6px 4px 5px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            transition: border-color 0.15s, transform 0.15s;
+        }
+
+        .preset-card:hover {
+            transform: translateY(-1px);
+        }
+
+        .preset-card.active {
+            border-color: var(--primary-color);
+        }
+
+        .preset-swatches {
+            display: flex;
+            gap: 3px;
+        }
+
+        .preset-swatches i {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: block;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 10px;
+        }
+
+        .color-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .color-field input[type="color"] {
+            -webkit-appearance: none;
+            appearance: none;
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            padding: 0;
+            background: none;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .color-field input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-field input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+
+        .color-field input[type="color"]::-moz-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+
+        details.section > summary {
+            cursor: pointer;
+            list-style: none;
+        }
+
+        details.section > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details.section > summary .section-label {
+            margin: 0;
+        }
+
+        details.section > summary .section-label::after {
+            content: "▾";
+            margin-left: auto;
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+        }
+
+        details.section:not([open]) > summary .section-label::after {
+            transform: rotate(-90deg);
+        }
+
+        details.section[open] > summary {
+            margin-bottom: 8px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-row .btn-secondary,
+        .btn-row .btn-main {
+            margin-top: 0;
+        }
+
+        /* ---------- How to play ---------- */
+        .help-intro {
+            font-size: 0.9rem;
+            line-height: 1.55;
+            margin: 0 0 10px;
+        }
+
+        .example {
+            margin-bottom: 10px;
+        }
+
+        .example-row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+
+        .example-row .tile {
+            width: 32px;
+            height: 32px;
+            font-size: 1rem;
+            transform: none;
+        }
+
+        .example p {
+            font-size: 0.8rem;
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .feature-list li {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .feature-list svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--primary-color);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .version-tag {
+            text-align: center;
+            font-size: 0.7rem;
+            opacity: 0.55;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <svg class="logo-icon" viewBox="0 0 24 24">
+                    <path
+                        d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z" />
+                </svg>
+                <h1>LOXIE</h1>
+            </div>
+            <div class="nav-group">
+                <!-- Install App Icon (shown when installable) -->
+                <button id="install-btn" class="nav-btn hidden" title="Install Loxie" aria-label="Install Loxie">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                    </svg>
+                </button>
+                <!-- Palette Icon -->
+                <button id="theme-editor-btn" class="nav-btn" title="Theme Studio" aria-label="Theme Studio">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                    </svg>
+                </button>
+                <!-- Music Toggle -->
+                <button id="music-btn" class="nav-btn" title="Music" aria-label="Toggle music">
+                    <svg viewBox="0 0 24 24" id="music-icon">
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
+                </button>
+                <!-- Options / Sliders Icon -->
+                <button id="code-menu-btn" class="nav-btn" title="Options &amp; New Game" aria-label="Options and new game">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>
+                    </svg>
+                </button>
+                <!-- Help / Question Icon -->
+                <button id="help-btn" class="nav-btn" title="How to Play" aria-label="How to Play">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.03-.42 1.98-1.07 2.75z"/>
+                    </svg>
+                </button>
+                <!-- Stats / Bar Chart Icon -->
+                <button id="stats-btn" class="nav-btn" title="Statistics" aria-label="Statistics">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Loader Screen -->
+        <div id="loader-screen" class="loader-screen">
+            <div class="spinner"></div>
+            <div id="loading-text">Preparing game...</div>
+        </div>
+
+        <!-- Main Game Screen -->
+        <div id="game-screen" class="hidden"
+            style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="status-info" id="status-info">Guess the word!</div>
+
+            <div id="grid" class="grid"></div>
+            <div id="feedback" class="feedback"></div>
+
+            <!-- Virtual Keyboard -->
+            <div class="keyboard" id="keyboard">
+                <div class="keyboard-row">
+                    <button class="key" data-key="q">q</button>
+                    <button class="key" data-key="w">w</button>
+                    <button class="key" data-key="e">e</button>
+                    <button class="key" data-key="r">r</button>
+                    <button class="key" data-key="t">t</button>
+                    <button class="key" data-key="y">y</button>
+                    <button class="key" data-key="u">u</button>
+                    <button class="key" data-key="i">i</button>
+                    <button class="key" data-key="o">o</button>
+                    <button class="key" data-key="p">p</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key" data-key="a">a</button>
+                    <button class="key" data-key="s">s</button>
+                    <button class="key" data-key="d">d</button>
+                    <button class="key" data-key="f">f</button>
+                    <button class="key" data-key="g">g</button>
+                    <button class="key" data-key="h">h</button>
+                    <button class="key" data-key="j">j</button>
+                    <button class="key" data-key="k">k</button>
+                    <button class="key" data-key="l">l</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key wide" data-key="ENTER">enter</button>
+                    <button class="key" data-key="z">z</button>
+                    <button class="key" data-key="x">x</button>
+                    <button class="key" data-key="c">c</button>
+                    <button class="key" data-key="v">v</button>
+                    <button class="key" data-key="b">b</button>
+                    <button class="key" data-key="n">n</button>
+                    <button class="key" data-key="m">m</button>
+                    <button class="key wide" data-key="BACK">⌫</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- End Game Screen -->
+        <div id="end-screen" class="hidden"
+            style="margin-top: 1rem; text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <h2 id="end-title" style="font-size: 1.6rem; margin-bottom: 0.4rem; color: var(--primary-color);"></h2>
+            <div id="end-content-area"
+                style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 0.8rem;">
+            </div>
+            <button id="share-code-btn" class="share-code-btn">
+                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+                Share Result Grid
+            </button>
+            <button id="play-again-btn" class="btn-secondary"
+                style="padding: 12px 24px; margin-top: 0.8rem; border-color: var(--primary-color); color: var(--primary-color);">
+                <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                Play Again
+            </button>
+        </div>
+
+        <footer class="app-footer">
+            <button type="button" id="footer-credits-btn" class="footer-link">Credits</button>
+        </footer>
+    </div>
+
+    <!-- Options / New Game Modal -->
+    <div id="code-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="options-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="options-title">Options</h2>
+                <button type="button" class="modal-close" id="close-code-btn" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+
+            <div class="section">
+                <div class="section-label"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg> New Game</div>
+                <span class="field-label">Word length</span>
+                <div class="segmented" id="new-game-len-selector">
+                    <button type="button" class="seg-btn len-tab active-tab" data-len="5">5</button>
+                    <button type="button" class="seg-btn len-tab" data-len="6">6</button>
+                    <button type="button" class="seg-btn len-tab" data-len="7">7</button>
+                    <button type="button" class="seg-btn len-tab" data-len="8">8</button>
+                </div>
+                <span class="field-label" style="margin-top: 10px;">Word familiarity</span>
+                <div class="segmented" id="new-game-diff-selector">
+                    <button type="button" class="seg-btn small diff-tab" data-diff="1">Familiar</button>
+                    <button type="button" class="seg-btn small diff-tab" data-diff="2">Common</button>
+                    <button type="button" class="seg-btn small diff-tab active-tab" data-diff="3">Standard</button>
+                    <button type="button" class="seg-btn small diff-tab" data-diff="4">Uncommon</button>
+                    <button type="button" class="seg-btn small diff-tab" data-diff="5">Obscure</button>
+                </div>
+                <p class="hint" id="new-game-summary"></p>
+                <div class="warn-note hidden" id="abandon-note">Starting a new game ends the one in progress.</div>
+                <button id="random-game-btn" class="btn-main" style="margin-top: 10px;">
+                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                    Start New Game
+                </button>
+            </div>
+
+            <div class="section">
+                <div class="section-label"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg> Sound</div>
+                <label class="setting-row" for="music-toggle">
+                    <span class="setting-text"><strong>Music</strong><span>Calm, generated background music</span></span>
+                    <span class="switch"><input type="checkbox" id="music-toggle"><span class="track"></span></span>
+                </label>
+                <div class="volume-row" id="music-volume-row">
+                    <span>Volume</span>
+                    <input type="range" id="music-volume" min="0" max="100" step="1" aria-label="Music volume">
+                </div>
+                <label class="setting-row" for="sfx-toggle">
+                    <span class="setting-text"><strong>Sound effects</strong><span>Key taps, wins and misses</span></span>
+                    <span class="switch"><input type="checkbox" id="sfx-toggle"><span class="track"></span></span>
+                </label>
+            </div>
+
+            <div class="section" style="margin-bottom: 0;">
+                <div class="section-label"><svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg> Play a Friend's Challenge</div>
+                <div class="inline-input">
+                    <input type="text" id="code-input" class="code-input" placeholder="Paste a challenge link or code" autocomplete="off" autocapitalize="off" spellcheck="false">
+                    <button id="load-code-btn" class="btn-secondary">Load</button>
+                </div>
+                <div id="code-error" style="font-size: 0.75rem; color: #f43f5e; min-height: 16px; margin-top: 4px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Editor Modal -->
+    <div id="theme-editor-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="theme-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="theme-title">Theme Studio</h2>
+                <button type="button" class="modal-close" id="close-theme-btn" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+
+            <div class="theme-preview" aria-hidden="true">
+                <div class="tile correct">L</div><div class="tile present">O</div><div class="tile absent">X</div><div class="tile filled">I</div><div class="tile ">E</div>
+            </div>
+
+            <div class="section">
+                <div class="section-label"><svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg> Presets</div>
+                <div class="preset-grid" id="preset-grid"></div>
+            </div>
+
+            <details class="section" open>
+                <summary><div class="section-label"><svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg> Customize Colors</div></summary>
+                <div class="color-grid">
+                    <label class="color-field"><input type="color" data-var="--bg-color">Background</label>
+                    <label class="color-field"><input type="color" data-var="--text-color">Text</label>
+                    <label class="color-field"><input type="color" data-var="--primary-color">Accent</label>
+                    <label class="color-field"><input type="color" data-var="--border-color">Borders</label>
+                    <label class="color-field"><input type="color" data-var="--correct">Right spot</label>
+                    <label class="color-field"><input type="color" data-var="--present">Wrong spot</label>
+                    <label class="color-field"><input type="color" data-var="--absent">Not in word</label>
+                    <label class="color-field"><input type="color" data-var="--key-bg">Keys</label>
+                    <label class="color-field"><input type="color" data-var="--modal-bg">Dialogs</label>
+                    <label class="color-field"><input type="color" data-var="--modal-text">Dialog text</label>
+                </div>
+            </details>
+
+            <details class="section">
+                <summary><div class="section-label"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg> Share or Import</div></summary>
+                <textarea id="theme-json-input" class="code-input" placeholder="Paste a theme code here, or tap Copy Code to share yours" style="height: 54px; resize: none; margin-top: 0;"></textarea>
+                <div class="btn-row" style="margin-top: 6px;">
+                    <button type="button" class="btn-secondary" onclick="exportThemeSettings()">Copy Code</button>
+                    <button type="button" class="btn-secondary" onclick="importThemeSettings()">Import</button>
+                </div>
+            </details>
+
+            <div class="btn-row">
+                <button type="button" id="reset-theme-btn" class="btn-secondary" style="flex: 1;">Reset</button>
+                <button id="save-theme-btn" class="btn-main" style="flex: 2;">
+                    <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                    Save Theme
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="help-title">How to Play</h2>
+                <button type="button" class="modal-close" id="close-help-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+            <p class="help-intro">
+                Find the hidden word in <strong>6 guesses</strong> (<strong>7</strong> for 7- and 8-letter words).
+                Each guess must be a real word. After you press Enter, the tiles change color to show how close you got.
+            </p>
+
+            <div class="section">
+                <div class="section-label">Examples</div>
+                <div class="example">
+                    <div class="example-row"><div class="tile correct">B</div><div class="tile ">R</div><div class="tile ">E</div><div class="tile ">A</div><div class="tile ">D</div></div>
+                    <p><strong>B</strong> is in the word and in the right spot.</p>
+                </div>
+                <div class="example">
+                    <div class="example-row"><div class="tile ">S</div><div class="tile ">T</div><div class="tile present">O</div><div class="tile ">N</div><div class="tile ">E</div></div>
+                    <p><strong>O</strong> is in the word, but in a different spot.</p>
+                </div>
+                <div class="example" style="margin-bottom: 0;">
+                    <div class="example-row"><div class="tile ">L</div><div class="tile ">I</div><div class="tile absent">G</div><div class="tile ">H</div><div class="tile ">T</div></div>
+                    <p><strong>G</strong> is not in the word at all.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-label">More to Explore</div>
+                <ul class="feature-list">
+                    <li><svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg><span><strong>Options:</strong> pick 5&ndash;8 letter words, choose how familiar they are, and set music and sound.</span></li>
+                    <li><svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg><span><strong>Theme Studio:</strong> try a preset or mix your own colors, then share your theme code.</span></li>
+                    <li><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg><span><strong>Challenge friends:</strong> after a game, tap "Share Result Grid" to copy your emoji board with a link to the same word.</span></li>
+                    <li><svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg><span><strong>Statistics:</strong> wins, streaks and guess counts are tracked for each word length.</span></li>
+                    <li><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14zm-1-6h-3V8h-2v5H8l4 4 4-4z"/></svg><span><strong>Install it:</strong> add Loxie to your home screen to play like an app, even offline. On Android use the download icon in the header; on iPhone tap Share, then "Add to Home Screen".</span></li>
+                </ul>
+            </div>
+
+            <button id="close-help-btn" class="btn-main" style="margin-top: 4px;">Let's Play</button>
+            <button id="open-credits-btn" class="btn-secondary">Credits &amp; License</button>
+            <div class="version-tag">Loxie <span id="app-version"></span></div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Statistics</h2>
+                <button type="button" class="modal-close" id="close-stats-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+            <div style="display: flex; gap: 4px; margin-bottom: 0.75rem;">
+                <button class="btn-secondary stat-tab active-tab" data-len="5">5 Letters</button>
+                <button class="btn-secondary stat-tab" data-len="6">6 Letters</button>
+                <button class="btn-secondary stat-tab" data-len="7">7 Letters</button>
+                <button class="btn-secondary stat-tab" data-len="8">8 Letters</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 0.75rem 0; text-align: center;">
+                <div>
+                    <div id="stat-played" style="font-size: 1.3rem; font-weight: bold; color: var(--primary-color);">0</div>
+                    <div style="font-size: 0.65rem; opacity: 0.7;">Played</div>
+                </div>
+                <div>
+                    <div id="stat-winpct" style="font-size: 1.3rem; font-weight: bold; color: var(--correct);">0%</div>
+                    <div style="font-size: 0.65rem; opacity: 0.7;">Win %</div>
+                </div>
+                <div>
+                    <div id="stat-streak" style="font-size: 1.3rem; font-weight: bold; color: var(--present);">0</div>
+                    <div style="font-size: 0.65rem; opacity: 0.7;">Streak</div>
+                </div>
+                <div>
+                    <div id="stat-maxstreak" style="font-size: 1.3rem; font-weight: bold; color: var(--text-color);">0</div>
+                    <div style="font-size: 0.65rem; opacity: 0.7;">Max Streak</div>
+                </div>
+            </div>
+
+            <div style="font-size: 0.75rem; font-weight: bold; text-align: left; margin-top: 1rem; margin-bottom: 6px; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px;">Guess Distribution</div>
+            <div id="guess-distribution-container" style="display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: 0.8rem; margin-bottom: 1rem;">
+                <!-- Populated via JS -->
+            </div>
+
+            <button id="close-stats-btn" class="btn-main" style="margin-top: 0.5rem;">Close</button>
+        </div>
+    </div>
+
+    <!-- Credits Modal -->
+    <div id="credits-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Credits</h2>
+                <button type="button" class="modal-close" id="close-credits-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+            <ul class="credits-list">
+                <li><strong>Design &amp; development:</strong> Steve Parkosewich (Syber Nomad)</li>
+                <li><strong>Word list:</strong> <a href="https://github.com/dwyl/english-words" target="_blank" rel="noopener noreferrer">dwyl/english-words</a>, released under the Unlicense (public domain).</li>
+                <li><strong>Random words &amp; difficulty:</strong> <a href="https://github.com/RazorSh4rk/random-word-api" target="_blank" rel="noopener noreferrer">Random Word API</a> by RazorSh4rk.</li>
+                <li><strong>Definitions:</strong> links open <a href="https://www.merriam-webster.com/" target="_blank" rel="noopener noreferrer">Merriam-Webster</a>.</li>
+                <li><strong>Icons:</strong> <a href="https://fonts.google.com/icons" target="_blank" rel="noopener noreferrer">Material Icons</a> by Google, Apache License 2.0.</li>
+                <li><strong>Music, sound &amp; confetti:</strong> composed and synthesized live in your browser; no recordings or audio files are used.</li>
+                <li><strong>Inspiration:</strong> the guess-the-word format popularized by Wordle (Josh Wardle). Loxie is an independent project and is not affiliated with or endorsed by Wordle or The New York Times.</li>
+            </ul>
+            <p style="font-size: 0.8rem; opacity: 0.8; line-height: 1.5; margin: 0;">
+                Loxie is open source under the
+                <a href="https://github.com/sybernomad/Loxie/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color);">MIT License</a>.
+            </p>
+            <button id="close-credits-btn" class="btn-main">Close</button>
+        </div>
+    </div>
+
+    <!-- Include the pre-processed dictionary script -->
+    <script src="valid-words.js"></script>
+
+    <script>
+        const APP_VERSION = '1.0.0';
+
+        const wordDict = {};
+        if (window.LOXIE_DICTIONARY) {
+            for (const [len, words] of Object.entries(window.LOXIE_DICTIONARY)) {
+                wordDict[len] = new Set(words);
+            }
+        }
+
+        function isValidWord(word) {
+            const len = word.length;
+            if (!wordDict[len]) return true;
+            return wordDict[len].has(word.toLowerCase());
+        }
+
+        // Make sure the answer is always guessable, even if it came from the API
+        // or a friend's challenge and isn't in the local word list.
+        function ensureInDictionary(word) {
+            if (!wordDict[word.length]) wordDict[word.length] = new Set();
+            wordDict[word.length].add(word);
+        }
+
+        // Well-known words used when the Random Word API can't be reached, so the
+        // offline game doesn't pick obscure entries from the full dictionary.
+        const FALLBACK_WORDS = {
+            5: "about above actor adult agree alarm album alive apple award beach bread brick brown build candy chair cheap chess clean clock cloud crane dance dream drink eagle earth field flame fruit ghost glass grape green happy heart horse house juice knife laugh lemon light magic music night ocean paint party piano plant quiet river robot smile snake storm sugar table tiger toast train water whale world".split(" "),
+            6: "action animal autumn banana basket bridge button candle carpet castle cheese circle coffee cookie desert dinner doctor dragon empire energy family flower forest friend garden ginger golden guitar hammer island jacket jungle kitten ladder legend letter magnet market mirror monkey number orange parrot pencil pepper planet pocket purple rabbit rocket silver spirit spring summer ticket tomato travel turtle wallet winter".split(" "),
+            7: "balance balloon battery blanket cabinet captain chicken compass concert cottage crystal diamond dolphin eclipse factory fantasy feather freedom gallery giraffe harmony harvest holiday journey kitchen library machine mermaid morning mystery network octopus painter pancake penguin picture popcorn pyramid rainbow science shelter soldier station teacher theater thunder tornado trumpet uniform village volcano weather whisper".split(" "),
+            8: "absolute airplane alphabet backpack baseball birthday blizzard building calendar campfire champion children computer daughter dinosaur dumpling elephant envelope exercise festival flamingo football fountain frontier gardener hospital kangaroo keyboard language lemonade magazine mountain mushroom notebook painting passport peaceful platform question rainfall sandwich scorpion shoulder sunshine treasure umbrella universe vacation yourself".split(" ")
+        };
+
+        function decodeSeed(seed) {
+            if (!seed) return null;
+            try {
+                const decoded = atob(seed.trim()).toLowerCase().trim();
+                return /^[a-z]{5,8}$/.test(decoded) ? decoded : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function copyText(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
+            }
+            return legacyCopy(text);
+        }
+
+        function legacyCopy(text) {
+            return new Promise((resolve, reject) => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                let ok = false;
+                try { ok = document.execCommand('copy'); } catch (e) { }
+                document.body.removeChild(ta);
+                ok ? resolve() : reject(new Error('copy failed'));
+            });
+        }
+
+        function storageGet(key) {
+            try { return localStorage.getItem(key); } catch (e) { return null; }
+        }
+        function storageSet(key, val) {
+            try { localStorage.setItem(key, val); } catch (e) { }
+        }
+        function storageRemove(key) {
+            try { localStorage.removeItem(key); } catch (e) { }
+        }
+
+        const defaultThemes = {
+            dark: {
+                "--bg-color": "#0f172a", "--text-color": "#f8fafc", "--border-color": "#334155",
+                "--key-bg": "#1e293b", "--key-text": "#f8fafc", "--correct": "#06b6d4",
+                "--present": "#f59e0b", "--absent": "#475569", "--absent-text": "#ffffff",
+                "--primary-color": "#06b6d4", "--modal-bg": "#1e293b", "--modal-text": "#f8fafc"
+            },
+            light: {
+                "--bg-color": "#f8fafc", "--text-color": "#0f172a", "--border-color": "#cbd5e1",
+                "--key-bg": "#e2e8f0", "--key-text": "#0f172a", "--correct": "#0891b2",
+                "--present": "#d97706", "--absent": "#94a3b8", "--absent-text": "#ffffff",
+                "--primary-color": "#0891b2", "--modal-bg": "#ffffff", "--modal-text": "#0f172a"
+            },
+            classic: {
+                "--bg-color": "#ffffff", "--text-color": "#1a1a1b", "--border-color": "#d3d6da",
+                "--key-bg": "#d3d6da", "--key-text": "#1a1a1b", "--correct": "#6aaa64",
+                "--present": "#c9b458", "--absent": "#787c7e", "--absent-text": "#ffffff",
+                "--primary-color": "#538d4e", "--modal-bg": "#ffffff", "--modal-text": "#1a1a1b"
+            },
+            ocean: {
+                "--bg-color": "#0b1d2e", "--text-color": "#e6f4f1", "--border-color": "#24435c",
+                "--key-bg": "#12304a", "--key-text": "#e6f4f1", "--correct": "#2dd4bf",
+                "--present": "#fb7185", "--absent": "#3b5468", "--absent-text": "#ffffff",
+                "--primary-color": "#2dd4bf", "--modal-bg": "#12304a", "--modal-text": "#e6f4f1"
+            },
+            sunset: {
+                "--bg-color": "#2a1633", "--text-color": "#fdf2f8", "--border-color": "#4c2c5a",
+                "--key-bg": "#3a1f47", "--key-text": "#fdf2f8", "--correct": "#f472b6",
+                "--present": "#fbbf24", "--absent": "#5b4566", "--absent-text": "#ffffff",
+                "--primary-color": "#fb923c", "--modal-bg": "#3a1f47", "--modal-text": "#fdf2f8"
+            },
+            forest: {
+                "--bg-color": "#102018", "--text-color": "#ecfdf5", "--border-color": "#2c4a3a",
+                "--key-bg": "#183326", "--key-text": "#ecfdf5", "--correct": "#22c55e",
+                "--present": "#eab308", "--absent": "#3f5a4c", "--absent-text": "#ffffff",
+                "--primary-color": "#4ade80", "--modal-bg": "#183326", "--modal-text": "#ecfdf5"
+            },
+            paper: {
+                "--bg-color": "#f5efe6", "--text-color": "#3b2f2a", "--border-color": "#d8ccbd",
+                "--key-bg": "#e9dfd2", "--key-text": "#3b2f2a", "--correct": "#5b8a72",
+                "--present": "#d4a259", "--absent": "#a39382", "--absent-text": "#ffffff",
+                "--primary-color": "#8a5a44", "--modal-bg": "#fbf7f1", "--modal-text": "#3b2f2a"
+            },
+            contrast: {
+                "--bg-color": "#000000", "--text-color": "#ffffff", "--border-color": "#5a5a5a",
+                "--key-bg": "#262626", "--key-text": "#ffffff", "--correct": "#f5793a",
+                "--present": "#85c0f9", "--absent": "#3a3a3c", "--absent-text": "#ffffff",
+                "--primary-color": "#f5793a", "--modal-bg": "#121212", "--modal-text": "#ffffff"
+            }
+        };
+        const PRESET_NAMES = {
+            dark: "Midnight", light: "Daylight", classic: "Classic", ocean: "Ocean",
+            sunset: "Sunset", forest: "Forest", paper: "Paper", contrast: "Bold"
+        };
+
+        // Only accept known CSS variables with hex color values.
+        function sanitizeTheme(obj) {
+            const clean = {};
+            if (!obj || typeof obj !== 'object') return clean;
+            for (const key of Object.keys(defaultThemes.dark)) {
+                const v = obj[key];
+                if (typeof v === 'string' && /^#[0-9a-f]{3,8}$/i.test(v.trim())) clean[key] = v.trim();
+            }
+            return clean;
+        }
+
+        function applyTheme(themeObj) {
+            for (const [key, value] of Object.entries(themeObj)) {
+                document.documentElement.style.setProperty(key, value);
+            }
+        }
+
+        function loadSavedTheme() {
+            const saved = storageGet('loxie_custom_theme');
+            if (saved) {
+                try {
+                    const parsed = sanitizeTheme(JSON.parse(saved));
+                    applyTheme(Object.assign({}, defaultThemes.dark, parsed));
+                } catch (e) {
+                    applyTheme(defaultThemes.dark);
+                }
+            } else {
+                applyTheme(defaultThemes.dark);
+            }
+        }
+        loadSavedTheme();
+
+        const themeEditorModal = document.getElementById('theme-editor-modal');
+        document.getElementById('theme-editor-btn').addEventListener('click', () => {
+            const colorInputs = themeEditorModal.querySelectorAll('input[type="color"]');
+            colorInputs.forEach(input => {
+                const varName = input.getAttribute('data-var');
+                const val = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+                if (val && val.startsWith('#')) {
+                    input.value = val;
+                }
+            });
+            markActivePreset();
+            document.getElementById('theme-json-input').value = '';
+            themeEditorModal.classList.remove('hidden');
+        });
+
+        // Preset cards, drawn from defaultThemes
+        const presetGrid = document.getElementById('preset-grid');
+        Object.entries(defaultThemes).forEach(([key, t]) => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'preset-card';
+            card.dataset.preset = key;
+            card.title = `${PRESET_NAMES[key] || key} theme`;
+            card.style.background = t['--bg-color'];
+            card.style.color = t['--text-color'];
+            card.innerHTML = `<span class="preset-swatches"><i style="background:${t['--correct']}"></i><i style="background:${t['--present']}"></i><i style="background:${t['--absent']}"></i></span>${PRESET_NAMES[key] || key}`;
+            card.addEventListener('click', () => applyPreset(key));
+            presetGrid.appendChild(card);
+        });
+
+        function markActivePreset() {
+            const cur = getCurrentThemeObject();
+            const match = Object.keys(defaultThemes).find(k =>
+                ['--bg-color', '--text-color', '--primary-color', '--correct', '--present', '--absent']
+                    .every(v => (defaultThemes[k][v] || '').toLowerCase() === (cur[v] || '').toLowerCase()));
+            presetGrid.querySelectorAll('.preset-card').forEach(c => c.classList.toggle('active', c.dataset.preset === match));
+        }
+
+        document.getElementById('reset-theme-btn').addEventListener('click', () => applyPreset('dark'));
+        // Close without saving: throw away any live preview and restore the saved theme.
+        function closeThemeEditor() {
+            loadSavedTheme();
+            themeEditorModal.classList.add('hidden');
+        }
+        document.getElementById('close-theme-btn').addEventListener('click', closeThemeEditor);
+
+        // Live preview while picking colors
+        themeEditorModal.querySelectorAll('input[type="color"]').forEach(input => {
+            input.addEventListener('input', () => {
+                applyTheme(getCurrentThemeObject());
+                markActivePreset();
+            });
+        });
+
+        function applyPreset(presetName) {
+            if (defaultThemes[presetName]) {
+                applyTheme(defaultThemes[presetName]);
+                const colorInputs = themeEditorModal.querySelectorAll('input[type="color"]');
+                colorInputs.forEach(input => {
+                    const varName = input.getAttribute('data-var');
+                    const val = defaultThemes[presetName][varName];
+                    if (val) input.value = val;
+                });
+                applyTheme(getCurrentThemeObject());
+                markActivePreset();
+            }
+        }
+
+        function getCurrentThemeObject() {
+            const theme = {};
+            const colorInputs = themeEditorModal.querySelectorAll('input[type="color"]');
+            colorInputs.forEach(input => {
+                theme[input.getAttribute('data-var')] = input.value;
+            });
+            theme['--absent-text'] = '#ffffff';
+            theme['--key-text'] = theme['--text-color'];
+            return theme;
+        }
+
+        document.getElementById('save-theme-btn').addEventListener('click', () => {
+            const currentTheme = getCurrentThemeObject();
+            storageSet('loxie_custom_theme', JSON.stringify(currentTheme));
+            applyTheme(currentTheme);
+            themeEditorModal.classList.add('hidden');
+        });
+
+        function exportThemeSettings() {
+            const currentTheme = getCurrentThemeObject();
+            const jsonStr = JSON.stringify(currentTheme);
+            const textarea = document.getElementById('theme-json-input');
+            textarea.value = jsonStr;
+            copyText(jsonStr).then(() => {
+                alert("Theme code copied to your clipboard!");
+            }).catch(() => {
+                textarea.select();
+                alert("Couldn't access the clipboard - the code is in the box below, copy it manually.");
+            });
+        }
+
+        function importThemeSettings() {
+            try {
+                const val = document.getElementById('theme-json-input').value.trim();
+                const parsed = sanitizeTheme(JSON.parse(val));
+                if (Object.keys(parsed).length === 0) throw new Error('empty theme');
+                const merged = Object.assign(getCurrentThemeObject(), parsed);
+                if (!parsed['--key-text'] && parsed['--text-color']) merged['--key-text'] = parsed['--text-color'];
+                applyTheme(merged);
+                storageSet('loxie_custom_theme', JSON.stringify(merged));
+                const colorInputs = themeEditorModal.querySelectorAll('input[type="color"]');
+                colorInputs.forEach(input => {
+                    const varName = input.getAttribute('data-var');
+                    if (merged[varName]) input.value = merged[varName];
+                });
+                markActivePreset();
+                alert("Theme successfully imported!");
+            } catch (e) {
+                alert("Invalid theme code format. Please check the text and try again.");
+            }
+        }
+
+        /*
+         * Loxie sound. Everything is synthesized in the browser: no audio files.
+         *
+         *   master - compressor - speakers
+         *     |-- sfx bus     (key taps, win jingle, miss buzz)
+         *     |-- music bus   (a slow lo-fi loop: soft pad, warm bass, sparse keys, brushed hat)
+         *     `-- reverb      (a generated room impulse), fed by both
+         *
+         * Nothing makes a sound until the first tap or key press, because browsers block audio before that.
+         */
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let masterGain = null, sfxGain = null, musicGain = null, reverbIn = null, padFilter = null, noiseBuf = null;
+
+        let musicOn = storageGet('loxie_music') !== 'false';
+        let sfxOn = storageGet('loxie_sfx') !== 'false';
+        let musicVolume = parseFloat(storageGet('loxie_music_volume'));
+        if (!(musicVolume >= 0 && musicVolume <= 1)) musicVolume = 0.6;
+
+        function buildAudio() {
+            audioCtx = new AudioContext();
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.9;
+            const comp = audioCtx.createDynamicsCompressor();
+            comp.threshold.value = -18;
+            comp.ratio.value = 4;
+            masterGain.connect(comp).connect(audioCtx.destination);
+
+            // Generated reverb impulse: decaying stereo noise
+            const rate = audioCtx.sampleRate;
+            const len = Math.floor(rate * 3);
+            const imp = audioCtx.createBuffer(2, len, rate);
+            for (let ch = 0; ch < 2; ch++) {
+                const d = imp.getChannelData(ch);
+                for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2);
+            }
+            const verb = audioCtx.createConvolver();
+            verb.buffer = imp;
+            reverbIn = audioCtx.createGain();
+            reverbIn.gain.value = 0.35;
+            reverbIn.connect(verb).connect(masterGain);
+
+            sfxGain = audioCtx.createGain();
+            sfxGain.gain.value = 1;
+            sfxGain.connect(masterGain);
+
+            musicGain = audioCtx.createGain();
+            musicGain.gain.value = 0;
+            musicGain.connect(masterGain);
+
+            // Pad voices share one soft low-pass filter
+            padFilter = audioCtx.createBiquadFilter();
+            padFilter.type = 'lowpass';
+            padFilter.frequency.value = 1100;
+            padFilter.Q.value = 0.4;
+            padFilter.connect(musicGain);
+            const padSend = audioCtx.createGain();
+            padSend.gain.value = 0.6;
+            padFilter.connect(padSend).connect(reverbIn);
+
+            noiseBuf = audioCtx.createBuffer(1, rate, rate);
+            const nd = noiseBuf.getChannelData(0);
+            for (let i = 0; i < rate; i++) nd[i] = Math.random() * 2 - 1;
+        }
+
+        function initAudio() {
+            if (!AudioContext) return;
+            try {
+                if (!audioCtx) buildAudio();
+                if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => { });
+            } catch (e) {
+                audioCtx = null;
+            }
+        }
+
+        function audioRunning() {
+            return !!(audioCtx && audioCtx.state === 'running');
+        }
+
+        // One oscillator note with attack and exponential release.
+        function note(o) {
+            const t = o.time;
+            const osc = audioCtx.createOscillator();
+            osc.type = o.type || 'sine';
+            osc.frequency.setValueAtTime(o.freq, t);
+            if (o.detune) osc.detune.setValueAtTime(o.detune, t);
+            if (o.glideTo) osc.frequency.exponentialRampToValueAtTime(o.glideTo, t + o.dur);
+            const g = audioCtx.createGain();
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(Math.max(0.0002, o.gain), t + (o.attack || 0.005));
+            g.gain.exponentialRampToValueAtTime(0.0001, t + o.dur);
+            osc.connect(g);
+            g.connect(o.dest);
+            if (o.wet) {
+                const send = audioCtx.createGain();
+                send.gain.value = o.wet;
+                g.connect(send).connect(reverbIn);
+            }
+            osc.start(t);
+            osc.stop(t + o.dur + 0.05);
+        }
+
+        function noiseHit(o) {
+            const t = o.time;
+            const src = audioCtx.createBufferSource();
+            src.buffer = noiseBuf;
+            const f = audioCtx.createBiquadFilter();
+            f.type = o.filter || 'highpass';
+            f.frequency.value = o.freq || 6000;
+            const g = audioCtx.createGain();
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(o.gain, t + (o.attack || 0.004));
+            g.gain.exponentialRampToValueAtTime(0.0001, t + o.dur);
+            src.connect(f).connect(g).connect(o.dest);
+            src.start(t, Math.random() * 0.5);
+            src.stop(t + o.dur + 0.05);
+        }
+
+        const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
+
+        function playSound(type) {
+            if (!sfxOn || !audioRunning()) return;
+            const now = audioCtx.currentTime;
+
+            if (type === 'tap') {
+                note({ dest: sfxGain, time: now, freq: 520 + Math.random() * 40, type: 'sine', gain: 0.03, dur: 0.05, attack: 0.003 });
+            } else if (type === 'win') {
+                [76, 79, 84, 88].forEach((n, i) => {
+                    note({ dest: sfxGain, time: now + i * 0.09, freq: midi(n), type: 'triangle', gain: 0.07, dur: 0.6, attack: 0.008, wet: 0.4 });
+                    note({ dest: sfxGain, time: now + i * 0.09, freq: midi(n + 12), type: 'sine', gain: 0.02, dur: 0.35, attack: 0.004 });
+                });
+                duckMusic(1.6);
+            } else if (type === 'wrong') {
+                note({ dest: sfxGain, time: now, freq: 150, glideTo: 90, type: 'triangle', gain: 0.08, dur: 0.22, attack: 0.01 });
+            } else if (type === 'lose') {
+                [64, 60, 57].forEach((n, i) => {
+                    note({ dest: sfxGain, time: now + i * 0.22, freq: midi(n), type: 'triangle', gain: 0.05, dur: 0.7, attack: 0.02, wet: 0.5 });
+                });
+                duckMusic(1.4);
+            }
+        }
+
+        // ---- Background music: "Lantern", a slow lo-fi loop ----
+        // 8 bars of 8 eighth-notes at 68 BPM. Chords are lists of MIDI notes.
+        const MUSIC = {
+            bpm: 68,
+            chords: [
+                [53, 57, 60, 64],   // Fmaj7
+                [52, 55, 59, 62],   // Em7
+                [50, 53, 57, 60],   // Dm7
+                [48, 52, 55, 59],   // Cmaj7
+                [53, 57, 60, 64],   // Fmaj7
+                [55, 59, 62, 65],   // G7
+                [57, 60, 64, 67],   // Am7
+                [52, 55, 59, 62]    // Em7
+            ],
+            // C major pentatonic for the melody, two octaves
+            melody: [72, 74, 76, 79, 81, 84, 86, 88]
+        };
+        let musicTimer = null, musicStep = 0, musicNext = 0, lastMelody = 76;
+
+        function playMusicStep(step, time) {
+            const bar = Math.floor(step / 8) % MUSIC.chords.length;
+            const s8 = step % 8;
+            const chord = MUSIC.chords[bar];
+            const beat = 60 / MUSIC.bpm;
+            const barLen = beat * 4;
+
+            // Soft pad: two slightly detuned voices per chord note, long fade in and out
+            if (s8 === 0) {
+                chord.forEach((n, i) => {
+                    [-6, 6].forEach(det => note({
+                        dest: padFilter, time: time + i * 0.03, freq: midi(n), detune: det,
+                        type: i % 2 ? 'sine' : 'triangle', gain: 0.015, dur: barLen * 1.15, attack: barLen * 0.35
+                    }));
+                });
+            }
+
+            // Warm bass on the downbeat, with a pickup now and then
+            if (s8 === 0 || (s8 === 5 && Math.random() < 0.4)) {
+                note({ dest: musicGain, time, freq: midi(chord[0] - 12), type: 'sine', gain: s8 === 0 ? 0.07 : 0.04, dur: s8 === 0 ? beat * 1.8 : beat * 0.9, attack: 0.03 });
+            }
+
+            // Sparse electric-piano melody, wandering by small steps
+            const chance = s8 === 0 ? 0.15 : (s8 % 2 === 0 ? 0.45 : 0.22);
+            if (Math.random() < chance) {
+                const idx = MUSIC.melody.indexOf(lastMelody);
+                const move = [-2, -1, -1, 0, 1, 1, 2][Math.floor(Math.random() * 7)];
+                const ni = Math.max(0, Math.min(MUSIC.melody.length - 1, (idx < 0 ? 2 : idx) + move));
+                lastMelody = MUSIC.melody[ni];
+                const swing = s8 % 2 ? beat * 0.08 : 0;
+                const t = time + swing + Math.random() * 0.015;
+                const vel = 0.025 + Math.random() * 0.012;
+                note({ dest: musicGain, time: t, freq: midi(lastMelody), type: 'sine', gain: vel, dur: 1.4, attack: 0.006, wet: 0.55 });
+                note({ dest: musicGain, time: t, freq: midi(lastMelody) * 2, type: 'sine', gain: vel * 0.18, dur: 0.35, attack: 0.003 });
+            }
+
+            // Brushed hat, very quiet, on the off-beats
+            if (s8 % 2 === 1 && Math.random() < 0.7) {
+                noiseHit({ dest: musicGain, time: time + beat * 0.06, freq: 7000, gain: 0.006 + Math.random() * 0.004, dur: 0.07, attack: 0.01 });
+            }
+            // Soft kick-like thump at the top of each bar
+            if (s8 === 0 || s8 === 4) {
+                note({ dest: musicGain, time, freq: 90, glideTo: 45, type: 'sine', gain: s8 === 0 ? 0.05 : 0.03, dur: 0.25, attack: 0.004 });
+            }
+        }
+
+        function scheduleMusic() {
+            if (!audioRunning()) return;
+            const stepDur = 60 / MUSIC.bpm / 2;
+            // If the tab slept, skip ahead instead of firing a burst of old notes
+            if (musicNext < audioCtx.currentTime - 0.3) musicNext = audioCtx.currentTime + 0.05;
+            while (musicNext < audioCtx.currentTime + 0.35) {
+                playMusicStep(musicStep, musicNext);
+                musicNext += stepDur;
+                musicStep = (musicStep + 1) % (8 * MUSIC.chords.length);
+            }
+        }
+
+        function musicLevel() {
+            return 0.9 * musicVolume;
+        }
+
+        function startMusic() {
+            if (musicTimer || !musicOn || document.hidden) return;
+            initAudio();
+            if (!audioRunning()) return;
+            musicStep = 0;
+            musicNext = audioCtx.currentTime + 0.15;
+            const t = audioCtx.currentTime;
+            musicGain.gain.cancelScheduledValues(t);
+            musicGain.gain.setValueAtTime(musicGain.gain.value, t);
+            musicGain.gain.setTargetAtTime(musicLevel(), t, 1.5);
+            musicTimer = setInterval(scheduleMusic, 100);
+            scheduleMusic();
+        }
+
+        function stopMusic(fast) {
+            if (!musicTimer) return;
+            clearInterval(musicTimer);
+            musicTimer = null;
+            if (audioCtx) {
+                const t = audioCtx.currentTime;
+                musicGain.gain.cancelScheduledValues(t);
+                musicGain.gain.setValueAtTime(musicGain.gain.value, t);
+                musicGain.gain.setTargetAtTime(0, t, fast ? 0.08 : 0.5);
+            }
+        }
+
+        // Dip the music under the win/lose jingles
+        function duckMusic(seconds) {
+            if (!musicTimer || !audioCtx) return;
+            const t = audioCtx.currentTime;
+            musicGain.gain.cancelScheduledValues(t);
+            musicGain.gain.setValueAtTime(musicGain.gain.value, t);
+            musicGain.gain.setTargetAtTime(musicLevel() * 0.3, t, 0.05);
+            musicGain.gain.setTargetAtTime(musicLevel(), t + seconds, 0.6);
+        }
+
+        function setMusic(on) {
+            musicOn = !!on;
+            storageSet('loxie_music', musicOn ? 'true' : 'false');
+            if (musicOn) startMusic(); else stopMusic();
+            updateMusicUI();
+        }
+
+        function setMusicVolume(v) {
+            musicVolume = Math.max(0, Math.min(1, v));
+            storageSet('loxie_music_volume', String(musicVolume));
+            if (musicTimer && audioCtx) musicGain.gain.setTargetAtTime(musicLevel(), audioCtx.currentTime, 0.1);
+        }
+
+        function setSfx(on) {
+            sfxOn = !!on;
+            storageSet('loxie_sfx', sfxOn ? 'true' : 'false');
+        }
+
+        // Wake on the first gesture; pause while the tab or app is in the background
+        function wakeAudio(e) {
+            // The music button handles its own first tap (so it starts music rather than muting it)
+            if (e && e.target && e.target.closest && e.target.closest('#music-btn')) return;
+            initAudio();
+            if (audioCtx && audioCtx.state !== 'running') {
+                audioCtx.resume().then(startMusic).catch(() => { });
+            } else {
+                startMusic();
+            }
+        }
+        ['pointerdown', 'keydown'].forEach(type => window.addEventListener(type, wakeAudio, { passive: true }));
+        document.addEventListener('visibilitychange', () => {
+            if (!audioCtx) return;
+            if (document.hidden) {
+                stopMusic(true);
+                audioCtx.suspend().catch(() => { });
+            } else {
+                audioCtx.resume().then(startMusic).catch(() => { });
+            }
+        });
+
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confettiParticles = [];
+        let confettiRunning = false;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function triggerConfetti(count = 60) {
+            confettiParticles = [];
+            const colors = ['#06b6d4', '#f59e0b', '#3b82f6', '#ec4899', '#10b981'];
+            for (let i = 0; i < count; i++) {
+                confettiParticles.push({
+                    x: canvas.width / 2, y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 14, vy: (Math.random() - 0.7) * 16,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 1
+                });
+            }
+            if (!confettiRunning) {
+                confettiRunning = true;
+                animateConfetti();
+            }
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let active = false;
+            confettiParticles.forEach(p => {
+                if (p.life > 0) {
+                    active = true;
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.3; p.life -= 0.02;
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                }
+            });
+            ctx.globalAlpha = 1;
+            if (active) requestAnimationFrame(animateConfetti);
+            else confettiRunning = false;
+        }
+
+        let secretWord = "";
+        let wordLength = 5;
+        let maxGuesses = 6;
+        let guesses = [];
+        let currentGuess = "";
+        let isGameOver = false;
+        let selectedNewGameLen = 5;
+        let selectedNewGameDiff = 3; // Default to Standard difficulty (Level 3)
+        try {
+            const prefs = JSON.parse(storageGet('loxie_prefs') || '{}');
+            if ([5, 6, 7, 8].includes(prefs.len)) selectedNewGameLen = prefs.len;
+            if ([1, 2, 3, 4, 5].includes(prefs.diff)) selectedNewGameDiff = prefs.diff;
+        } catch (e) { }
+        function savePrefs() {
+            storageSet('loxie_prefs', JSON.stringify({ len: selectedNewGameLen, diff: selectedNewGameDiff }));
+        }
+
+        let stats = {
+            5: { played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 } },
+            6: { played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 } },
+            7: { played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 } },
+            8: { played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 } }
+        };
+
+        const savedStats = storageGet('loxie_stats');
+        if (savedStats) {
+            try {
+                const parsed = JSON.parse(savedStats);
+                if (typeof parsed.played === 'number') {
+                    stats[5].played = parsed.played;
+                    stats[5].wins = parsed.wins;
+                    stats[5].streak = parsed.streak;
+                    stats[5].maxStreak = Math.max(parsed.maxStreak || 0, parsed.streak || 0);
+                } else if (parsed[5]) {
+                    [5, 6, 7, 8].forEach(l => {
+                        if (parsed[l]) {
+                            stats[l].played = parsed[l].played || 0;
+                            stats[l].wins = parsed[l].wins || 0;
+                            stats[l].streak = parsed[l].streak || 0;
+                            stats[l].maxStreak = parsed[l].maxStreak || parsed[l].streak || 0;
+                            stats[l].guesses = parsed[l].guesses || (l >= 7 ? { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 } : { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 });
+                        }
+                    });
+                }
+            } catch (e) { }
+        }
+
+        const loaderScreen = document.getElementById('loader-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const gridEl = document.getElementById('grid');
+        const feedbackEl = document.getElementById('feedback');
+        const statusInfo = document.getElementById('status-info');
+        const keyboardEl = document.getElementById('keyboard');
+        const loadingText = document.getElementById('loading-text');
+        const shareCodeBtn = document.getElementById('share-code-btn');
+        const endContentArea = document.getElementById('end-content-area');
+
+        const helpModal = document.getElementById('help-modal');
+        const statsModal = document.getElementById('stats-modal');
+        const codeModal = document.getElementById('code-modal');
+        const codeInput = document.getElementById('code-input');
+        const codeError = document.getElementById('code-error');
+
+        const creditsModal = document.getElementById('credits-modal');
+
+        document.getElementById('help-btn').addEventListener('click', () => helpModal.classList.remove('hidden'));
+        document.getElementById('close-help-btn').addEventListener('click', () => helpModal.classList.add('hidden'));
+
+        function openCredits() {
+            helpModal.classList.add('hidden');
+            creditsModal.classList.remove('hidden');
+        }
+        document.getElementById('open-credits-btn').addEventListener('click', openCredits);
+        document.getElementById('footer-credits-btn').addEventListener('click', openCredits);
+        document.getElementById('close-credits-btn').addEventListener('click', () => creditsModal.classList.add('hidden'));
+
+        function closeModal(modal) {
+            if (modal === themeEditorModal) closeThemeEditor();
+            else modal.classList.add('hidden');
+        }
+
+        function getOpenModal() {
+            return document.querySelector('.modal:not(.hidden)');
+        }
+
+        // Click on the dimmed backdrop closes the dialog
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal(modal);
+            });
+        });
+
+        let selectedStatLength = 5;
+        document.getElementById('stats-btn').addEventListener('click', () => {
+            selectedStatLength = wordLength;
+            updateStatsModal(selectedStatLength);
+            statsModal.classList.remove('hidden');
+        });
+        document.getElementById('close-stats-btn').addEventListener('click', () => statsModal.classList.add('hidden'));
+
+        const statTabs = statsModal.querySelectorAll('.stat-tab');
+        statTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                statTabs.forEach(t => t.classList.remove('active-tab'));
+                e.target.classList.add('active-tab');
+                selectedStatLength = parseInt(e.target.getAttribute('data-len'));
+                updateStatsModal(selectedStatLength);
+            });
+        });
+
+        const lenTabs = codeModal.querySelectorAll('.len-tab');
+        lenTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                lenTabs.forEach(t => t.classList.remove('active-tab'));
+                e.currentTarget.classList.add('active-tab');
+                selectedNewGameLen = parseInt(e.currentTarget.getAttribute('data-len'));
+                savePrefs();
+                updateNewGameSummary();
+            });
+        });
+
+        const diffTabs = codeModal.querySelectorAll('.diff-tab');
+        diffTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                diffTabs.forEach(t => t.classList.remove('active-tab'));
+                e.currentTarget.classList.add('active-tab');
+                selectedNewGameDiff = parseInt(e.currentTarget.getAttribute('data-diff'));
+                savePrefs();
+                updateNewGameSummary();
+            });
+        });
+
+        function updateStatsModal(len) {
+            statTabs.forEach(t => {
+                if (parseInt(t.getAttribute('data-len')) === len) {
+                    t.classList.add('active-tab');
+                } else {
+                    t.classList.remove('active-tab');
+                }
+            });
+
+            const curStats = stats[len] || { played: 0, wins: 0, streak: 0, maxStreak: 0, guesses: {} };
+            const winPct = curStats.played > 0 ? Math.round((curStats.wins / curStats.played) * 100) : 0;
+
+            document.getElementById('stat-played').textContent = curStats.played;
+            document.getElementById('stat-winpct').textContent = `${winPct}%`;
+            document.getElementById('stat-streak').textContent = curStats.streak;
+            document.getElementById('stat-maxstreak').textContent = curStats.maxStreak;
+
+            const distContainer = document.getElementById('guess-distribution-container');
+            distContainer.innerHTML = '';
+            const maxGuessesForLen = len >= 7 ? 7 : 6;
+            const guessCounts = Object.values(curStats.guesses || {});
+            const maxCount = guessCounts.length > 0 ? Math.max(...guessCounts, 1) : 1;
+
+            for (let i = 1; i <= maxGuessesForLen; i++) {
+                const count = curStats.guesses[i] || 0;
+                const widthPct = Math.max(Math.round((count / maxCount) * 100), 8);
+
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '6px';
+                row.style.fontSize = '0.75rem';
+
+                row.innerHTML = `
+                    <div style="width: 12px; font-weight: bold; text-align: center;">${i}</div>
+                    <div style="flex: 1; background: var(--border-color); border-radius: 3px; overflow: hidden; height: 18px; display: flex;">
+                        <div style="background: var(--correct); width: ${widthPct}%; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: var(--absent-text); font-weight: bold; transition: width 0.3s;">
+                            ${count}
+                        </div>
+                    </div>
+                `;
+                distContainer.appendChild(row);
+            }
+        }
+
+        document.getElementById('code-menu-btn').addEventListener('click', () => {
+            codeInput.value = "";
+            codeError.textContent = "";
+            lenTabs.forEach(t => t.classList.toggle('active-tab', parseInt(t.getAttribute('data-len')) === selectedNewGameLen));
+            diffTabs.forEach(t => t.classList.toggle('active-tab', parseInt(t.getAttribute('data-diff')) === selectedNewGameDiff));
+            updateNewGameSummary();
+            document.getElementById('abandon-note').classList.toggle('hidden', !(guesses.length > 0 && !isGameOver));
+            updateMusicUI();
+            codeModal.classList.remove('hidden');
+        });
+        document.getElementById('close-code-btn').addEventListener('click', () => codeModal.classList.add('hidden'));
+
+        document.getElementById('random-game-btn').addEventListener('click', () => {
+            codeModal.classList.add('hidden');
+            storageRemove('loxie_saved_game');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            fetchNewGame(selectedNewGameLen, selectedNewGameDiff);
+        });
+
+        document.getElementById('load-code-btn').addEventListener('click', () => {
+            let val = codeInput.value.trim();
+            if (!val) {
+                codeError.textContent = "Please enter a challenge code or link.";
+                return;
+            }
+
+            // Accept a full link, a bare "?seed=..." fragment, or just the code
+            const seedMatch = val.match(/[?&]seed=([^&#\s]+)/);
+            if (seedMatch) val = decodeURIComponent(seedMatch[1]);
+
+            const decoded = decodeSeed(val);
+            if (decoded) {
+                codeModal.classList.add('hidden');
+                storageRemove('loxie_saved_game');
+                window.history.replaceState({}, document.title, `${window.location.pathname}?seed=${encodeURIComponent(btoa(decoded))}`);
+                fetchNewGame();
+            } else {
+                codeError.textContent = "That doesn't look like a valid challenge code or link.";
+            }
+        });
+        codeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('load-code-btn').click();
+        });
+
+        document.getElementById('play-again-btn').addEventListener('click', () => {
+            storageRemove('loxie_saved_game');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            fetchNewGame(selectedNewGameLen, selectedNewGameDiff);
+        });
+
+        shareCodeBtn.addEventListener('click', () => {
+            const currentCode = btoa(secretWord);
+            const shareUrl = `${window.location.origin}${window.location.pathname}?seed=${encodeURIComponent(currentCode)}`;
+
+            const scoreCount = isGameOver && guesses[guesses.length - 1] === secretWord ? guesses.length : 'X';
+            let gridText = `Loxie | ${scoreCount}/${maxGuesses}\n\n`;
+
+            guesses.forEach(guess => {
+                const statuses = getLetterStatuses(guess, secretWord);
+                statuses.forEach(status => {
+                    if (status === 'correct') gridText += '🟦';
+                    else if (status === 'present') gridText += '🟧';
+                    else gridText += '⬛';
+                });
+                gridText += '\n';
+            });
+
+            gridText += `\nCan you beat my score? Play here:\n${shareUrl}`;
+
+            const shareIcon = `<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg> Share Result Grid`;
+            copyText(gridText).then(() => {
+                shareCodeBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg> Result Copied!`;
+                setTimeout(() => { 
+                    shareCodeBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg> Share Result Grid`; 
+                }, 2000);
+            }).catch(() => {
+                if (navigator.share) {
+                    navigator.share({ title: 'Loxie', text: gridText }).catch(() => { });
+                } else {
+                    shareCodeBtn.innerHTML = `Couldn't copy - try again`;
+                    setTimeout(() => { shareCodeBtn.innerHTML = shareIcon; }, 2000);
+                }
+            });
+        });
+
+        function saveGameState() {
+            if (isGameOver) {
+                storageRemove('loxie_saved_game');
+                return;
+            }
+            const gameState = { secretWord, wordLength, maxGuesses, guesses, isGameOver };
+            storageSet('loxie_saved_game', JSON.stringify(gameState));
+        }
+
+        async function fetchNewGame(forcedLen = null, forcedDiff = null) {
+            initAudio();
+
+            isGameOver = false;
+            currentGuess = "";
+            guesses = [];
+            feedbackEl.textContent = "";
+
+            endScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
+            loaderScreen.classList.remove('hidden');
+
+            const seedParam = new URLSearchParams(window.location.search).get('seed');
+            const seedWord = decodeSeed(seedParam);
+
+            let savedGame = null;
+            try {
+                savedGame = JSON.parse(storageGet('loxie_saved_game'));
+                if (!savedGame || typeof savedGame.secretWord !== 'string' || !/^[a-z]{5,8}$/.test(savedGame.secretWord)) {
+                    savedGame = null;
+                }
+            } catch (e) {
+                savedGame = null;
+            }
+            const savedGuesses = savedGame && Array.isArray(savedGame.guesses)
+                ? savedGame.guesses.filter(g => typeof g === 'string' && g.length === savedGame.secretWord.length && /^[a-z]+$/.test(g))
+                : [];
+
+            if (seedWord) {
+                loadingText.textContent = "Loading challenge word...";
+                secretWord = seedWord;
+                // Reloading a challenge in progress keeps your guesses
+                if (savedGame && savedGame.secretWord === seedWord) guesses = savedGuesses;
+            } else if (forcedLen === null && forcedDiff === null && savedGame) {
+                secretWord = savedGame.secretWord;
+                guesses = savedGuesses;
+            } else {
+                if (seedParam) {
+                    loadingText.textContent = "Invalid challenge, starting a new game...";
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } else {
+                    loadingText.textContent = "Preparing game...";
+                }
+                await pickWord(forcedLen, forcedDiff);
+            }
+
+            wordLength = secretWord.length;
+            maxGuesses = wordLength >= 7 ? 7 : 6;
+            guesses = guesses.slice(0, maxGuesses);
+            ensureInDictionary(secretWord);
+
+            statusInfo.textContent = seedWord
+                ? `Challenge: guess the ${wordLength}-letter word`
+                : `Guess the ${wordLength}-letter word`;
+
+            loaderScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+
+            renderGrid();
+            resetKeyboardColors();
+            updateKeyboardColors();
+            saveGameState();
+        }
+
+        async function pickWord(forcedLen = null, forcedDiff = null) {
+            wordLength = forcedLen || selectedNewGameLen;
+            const diff = forcedDiff || selectedNewGameDiff;
+
+            // Ask the API for a handful of words at this length & difficulty
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+                const response = await fetch(`https://random-word-api.herokuapp.com/word?length=${wordLength}&number=5&diff=${diff}`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    const candidates = data
+                        .map(w => String(w).toLowerCase().trim())
+                        .filter(w => w.length === wordLength && /^[a-z]+$/.test(w));
+                    // Prefer words the local dictionary also knows
+                    const known = candidates.filter(w => !wordDict[wordLength] || wordDict[wordLength].has(w));
+                    const pick = known[0] || candidates[0];
+                    if (pick) {
+                        secretWord = pick;
+                        return;
+                    }
+                }
+            } catch (err) {
+                // Offline or the API timed out: fall back to the built-in list below
+            }
+
+            const pool = (FALLBACK_WORDS[wordLength] || []).filter(w => w.length === wordLength);
+            if (pool.length > 0) {
+                secretWord = pool[Math.floor(Math.random() * pool.length)];
+            } else if (wordDict[wordLength] && wordDict[wordLength].size > 0) {
+                const wordArray = Array.from(wordDict[wordLength]);
+                secretWord = wordArray[Math.floor(Math.random() * wordArray.length)];
+            } else {
+                const fallbacks = { 5: "apple", 6: "planet", 7: "horizon", 8: "absolute" };
+                secretWord = fallbacks[wordLength] || "apple";
+            }
+        }
+
+        function getLetterStatuses(guess, target) {
+            const statuses = new Array(guess.length).fill('absent');
+            const targetChars = target.split('');
+            const guessChars = guess.split('');
+
+            for (let i = 0; i < guessChars.length; i++) {
+                if (guessChars[i] === targetChars[i]) {
+                    statuses[i] = 'correct';
+                    targetChars[i] = null;
+                    guessChars[i] = null;
+                }
+            }
+
+            for (let i = 0; i < guessChars.length; i++) {
+                if (guessChars[i] !== null) {
+                    const targetIndex = targetChars.indexOf(guessChars[i]);
+                    if (targetIndex !== -1) {
+                        statuses[i] = 'present';
+                        targetChars[targetIndex] = null;
+                    }
+                }
+            }
+
+            return statuses;
+        }
+
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            let tileSize = wordLength > 6 ? 38 : 44;
+
+            for (let r = 0; r < maxGuesses; r++) {
+                const row = document.createElement('div');
+                row.className = 'grid-row';
+
+                const guessStr = guesses[r] || (r === guesses.length && currentGuess ? currentGuess : '');
+
+                for (let c = 0; c < wordLength; c++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.style.width = `${tileSize}px`;
+                    tile.style.height = `${tileSize}px`;
+
+                    const letter = guessStr[c] || '';
+                    tile.textContent = letter;
+                    if (letter) tile.classList.add('filled');
+
+                    if (r < guesses.length) {
+                        const statuses = getLetterStatuses(guesses[r], secretWord);
+                        tile.classList.add(statuses[c]);
+                    }
+                    row.appendChild(tile);
+                }
+                gridEl.appendChild(row);
+            }
+        }
+
+        function resetKeyboardColors() {
+            const keys = keyboardEl.querySelectorAll('.key');
+            keys.forEach(k => {
+                k.className = 'key' + (k.getAttribute('data-key').length > 1 ? ' wide' : '');
+            });
+        }
+
+        function updateKeyboardColors() {
+            const letterPriority = { 'correct': 3, 'present': 2, 'absent': 1 };
+            const bestStatuses = {};
+
+            guesses.forEach(guess => {
+                const statuses = getLetterStatuses(guess, secretWord);
+                for (let i = 0; i < guess.length; i++) {
+                    const char = guess[i];
+                    const status = statuses[i];
+                    if (!bestStatuses[char] || letterPriority[status] > letterPriority[bestStatuses[char]]) {
+                        bestStatuses[char] = status;
+                    }
+                }
+            });
+
+            for (const [char, status] of Object.entries(bestStatuses)) {
+                const keyBtn = keyboardEl.querySelector(`[data-key="${char.toLowerCase()}"]`);
+                if (keyBtn) {
+                    keyBtn.className = 'key ' + status + (keyBtn.getAttribute('data-key').length > 1 ? ' wide' : '');
+                }
+            }
+        }
+
+        keyboardEl.addEventListener('click', (e) => {
+            const keyBtn = e.target.closest('.key');
+            if (!keyBtn) return;
+            keyBtn.blur(); // so a later physical Enter doesn't re-press this key
+            if (isGameOver) return;
+            handleKey(keyBtn.getAttribute('data-key'));
+        });
+
+        document.addEventListener('keydown', (e) => {
+            const openModal = getOpenModal();
+            if (e.key === 'Escape' && openModal) {
+                closeModal(openModal);
+                return;
+            }
+            // Don't type into the board while a dialog is open, while typing in a
+            // text box, or when using browser shortcuts like Ctrl+R / Cmd+C.
+            if (openModal) return;
+            const tag = (e.target && e.target.tagName) || '';
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (isGameOver || gameScreen.classList.contains('hidden')) return;
+
+            const key = (e.key || '').toLowerCase();
+            if (key === 'backspace') {
+                e.preventDefault();
+                handleKey('BACK');
+            } else if (key === 'enter') {
+                e.preventDefault();
+                handleKey('ENTER');
+            } else if (key.length === 1 && key >= 'a' && key <= 'z') {
+                handleKey(key);
+            }
+        });
+
+        function handleKey(key) {
+            initAudio();
+            if (key === 'BACK') {
+                if (currentGuess.length > 0) {
+                    playSound('tap');
+                    currentGuess = currentGuess.slice(0, -1);
+                    feedbackEl.textContent = "";
+                    renderGrid();
+                }
+            } else if (key === 'ENTER') {
+                if (currentGuess.length !== wordLength) {
+                    playSound('wrong');
+                    feedbackEl.textContent = `Not enough letters (${wordLength} required)`;
+                    return;
+                }
+                if (!isValidWord(currentGuess)) {
+                    playSound('wrong');
+                    feedbackEl.textContent = "Not in word list";
+                    return;
+                }
+                submitGuess();
+            } else {
+                if (currentGuess.length < wordLength) {
+                    playSound('tap');
+                    currentGuess += key.toLowerCase();
+                    renderGrid();
+                    feedbackEl.textContent = "";
+                }
+            }
+        }
+
+        // Once a challenge is finished, drop ?seed= from the address bar so a
+        // reload starts a fresh game instead of replaying (and re-scoring) it.
+        function clearFinishedChallenge() {
+            if (new URLSearchParams(window.location.search).has('seed')) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        function submitGuess() {
+            guesses.push(currentGuess);
+            currentGuess = "";
+            updateKeyboardColors();
+            renderGrid();
+            saveGameState();
+
+            const mwUrl = `https://www.merriam-webster.com/dictionary/${secretWord}`;
+
+            if (guesses[guesses.length - 1] === secretWord) {
+                isGameOver = true;
+                const cur = stats[wordLength];
+                cur.played++;
+                cur.wins++;
+                cur.streak++;
+                if (cur.streak > cur.maxStreak) cur.maxStreak = cur.streak;
+                cur.guesses[guesses.length] = (cur.guesses[guesses.length] || 0) + 1;
+
+                storageSet('loxie_stats', JSON.stringify(stats));
+                storageRemove('loxie_saved_game');
+                clearFinishedChallenge();
+
+                playSound('win');
+                triggerConfetti(70);
+
+                setTimeout(() => {
+                    gameScreen.classList.add('hidden');
+                    endScreen.classList.remove('hidden');
+                    document.getElementById('end-title').textContent = "Splendid! 🎉";
+                    endContentArea.innerHTML = `
+                        <p style="font-size: 1.1rem; opacity: 0.9; margin: 0;">
+                            The word was: <a href="${mwUrl}" target="_blank" rel="noopener noreferrer" class="definition-link" style="text-transform:uppercase; color:var(--correct);">${secretWord} ↗</a>
+                        </p>
+                    `;
+                }, 600);
+            } else if (guesses.length >= maxGuesses) {
+                isGameOver = true;
+                const cur = stats[wordLength];
+                cur.played++;
+                cur.streak = 0;
+
+                storageSet('loxie_stats', JSON.stringify(stats));
+                storageRemove('loxie_saved_game');
+                clearFinishedChallenge();
+
+                playSound('lose');
+
+                setTimeout(() => {
+                    gameScreen.classList.add('hidden');
+                    endScreen.classList.remove('hidden');
+                    document.getElementById('end-title').textContent = "Game Over";
+
+                    endContentArea.innerHTML = `
+                        <button id="reveal-word-btn" class="reveal-btn">
+                            <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            Reveal Word
+                        </button>
+                        <p id="revealed-word-text" style="font-size: 1.1rem; opacity: 0.9; margin: 0; display: none;"></p>
+                    `;
+
+                    document.getElementById('reveal-word-btn').addEventListener('click', function () {
+                        const revealText = document.getElementById('revealed-word-text');
+                        revealText.innerHTML = `The word was: <a href="${mwUrl}" target="_blank" rel="noopener noreferrer" class="definition-link" style="text-transform:uppercase; color:#f43f5e;">${secretWord} ↗</a>`;
+                        revealText.style.display = 'block';
+                        this.remove();
+                    });
+                }, 600);
+            }
+        }
+
+        fetchNewGame();
+
+        // ---- Options menu helpers ----
+        const DIFF_INFO = {
+            1: "Familiar: everyday words most people know.",
+            2: "Common: well-known words with a little more variety.",
+            3: "Standard: a balanced mix of common words.",
+            4: "Uncommon: words you may have read but rarely say.",
+            5: "Obscure: rare words for word nerds."
+        };
+        function updateNewGameSummary() {
+            const tries = selectedNewGameLen >= 7 ? 7 : 6;
+            document.getElementById('new-game-summary').textContent =
+                `${DIFF_INFO[selectedNewGameDiff]} ${selectedNewGameLen} letters, ${tries} guesses.`;
+        }
+
+        const musicToggle = document.getElementById('music-toggle');
+        const sfxToggle = document.getElementById('sfx-toggle');
+        const musicVolumeInput = document.getElementById('music-volume');
+        const musicBtn = document.getElementById('music-btn');
+        const MUSIC_ON_ICON = '<path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>';
+        const MUSIC_OFF_ICON = '<path d="M4.27 3L3 4.27l9 9v.28c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4v-1.73L19.73 21 21 19.73 4.27 3zM14 7h4V3h-6v5.18l2 2z"/>';
+
+        function updateMusicUI() {
+            musicToggle.checked = musicOn;
+            sfxToggle.checked = sfxOn;
+            musicVolumeInput.value = Math.round(musicVolume * 100);
+            document.getElementById('music-volume-row').style.opacity = musicOn ? '' : '0.4';
+            musicVolumeInput.disabled = !musicOn;
+            document.getElementById('music-icon').innerHTML = musicOn ? MUSIC_ON_ICON : MUSIC_OFF_ICON;
+            musicBtn.title = musicOn ? 'Music on (tap to mute)' : 'Music off (tap to play)';
+            musicBtn.setAttribute('aria-pressed', musicOn ? 'true' : 'false');
+        }
+        musicToggle.addEventListener('change', () => setMusic(musicToggle.checked));
+        sfxToggle.addEventListener('change', () => setSfx(sfxToggle.checked));
+        musicVolumeInput.addEventListener('input', () => setMusicVolume(musicVolumeInput.value / 100));
+        musicBtn.addEventListener('click', () => {
+            musicBtn.blur();
+            if (musicOn && !musicTimer) {
+                // Music is enabled but hasn't been able to start yet (no tap so far): start it
+                initAudio();
+                if (audioCtx) audioCtx.resume().then(startMusic).catch(() => { });
+                return;
+            }
+            setMusic(!musicOn);
+        });
+        updateMusicUI();
+
+        // Close (X) buttons on dialogs
+        document.getElementById('close-help-x').addEventListener('click', () => helpModal.classList.add('hidden'));
+        document.getElementById('close-stats-x').addEventListener('click', () => statsModal.classList.add('hidden'));
+        document.getElementById('close-credits-x').addEventListener('click', () => creditsModal.classList.add('hidden'));
+
+        document.getElementById('app-version').textContent = `v${APP_VERSION}`;
+
+        // ---- Installable app (PWA) ----
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => { });
+            });
+        }
+
+        const installBtn = document.getElementById('install-btn');
+        let deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            installBtn.classList.remove('hidden');
+        });
+        installBtn.addEventListener('click', async () => {
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            try { await deferredInstallPrompt.userChoice; } catch (e) { }
+            deferredInstallPrompt = null;
+            installBtn.classList.add('hidden');
+        });
+        window.addEventListener('appinstalled', () => {
+            deferredInstallPrompt = null;
+            installBtn.classList.add('hidden');
+        });
+    </script>
+</body>
+
+</html>
